@@ -6,8 +6,10 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
+
 import logo from "@/assets/logo.jpeg";
 import hero from "@/assets/hero.jpeg";
+
 import {
   translations,
   services,
@@ -15,44 +17,88 @@ import {
   hairProfessionals,
   type Lang,
 } from "@/lib/i18n";
+
 import PuntyAssistant from "@/components/PuntyAssistant";
 import Reminders from "@/components/Reminders";
-import { createBooking, createWalkin, listBookings } from "@/lib/data";
+
+import {
+  createBooking,
+  createWalkin,
+  listBookings,
+} from "@/lib/data";
+
 import { supabase } from "@/lib/supabase";
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "El Punty Barber Shop — London" },
+
       {
         name: "description",
         content:
           "Modern barbershop in London. Book online or join the walk-in queue. No waiting.",
       },
+
       { property: "og:title", content: "El Punty Barber Shop" },
+
       {
         property: "og:description",
         content: "Your cut, on your time. No waiting.",
       },
+
       { property: "og:type", content: "website" },
-      { property: "og:image", content: "/project-preview.jpeg" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "El Punty Barber Shop" },
+
+      {
+        property: "og:image",
+        content: "/project-preview.jpeg",
+      },
+
+      {
+        name: "twitter:card",
+        content: "summary_large_image",
+      },
+
+      {
+        name: "twitter:title",
+        content: "El Punty Barber Shop",
+      },
+
       {
         name: "twitter:description",
         content: "Your cut, on your time. No waiting.",
       },
-      { name: "twitter:image", content: "/project-preview.jpeg" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+
+      {
+        name: "twitter:image",
+        content: "/project-preview.jpeg",
+      },
+
+      {
+        name: "viewport",
+        content: "width=device-width, initial-scale=1",
+      },
     ],
+
     links: [
-      { rel: "icon", href: "/favicon.jpeg" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      {
+        rel: "icon",
+        href: "/favicon.jpeg",
+      },
+
+      {
+        rel: "preconnect",
+        href: "https://fonts.googleapis.com",
+      },
+
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap",
+        href:
+          "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap",
       },
     ],
   }),
+
   component: Index,
 });
 
@@ -60,8 +106,13 @@ function Index() {
   const [lang, setLang] = useState<Lang>("es");
 
   useEffect(() => {
-    const stored = localStorage.getItem("elpunty_lang") as Lang | null;
-    if (stored === "es" || stored === "en") setLang(stored);
+    const stored = localStorage.getItem(
+      "elpunty_lang",
+    ) as Lang | null;
+
+    if (stored === "es" || stored === "en") {
+      setLang(stored);
+    }
   }, []);
 
   useEffect(() => {
@@ -73,17 +124,31 @@ function Index() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header lang={lang} setLang={setLang} t={t} />
+
       <Hero t={t} />
+
       <Problem t={t} />
+
       <DataSection t={t} />
+
       <Solution t={t} />
+
       <Services t={t} lang={lang} />
+
       <Booking t={t} lang={lang} />
+
       <Walkin t={t} />
+
       <Benefits t={t} />
+
       <Reminders lang={lang} />
+
       <Footer t={t} />
-      <PuntyAssistant lang={lang} setLang={setLang} />
+
+      <PuntyAssistant
+        lang={lang}
+        setLang={setLang}
+      />
     </div>
   );
 }
@@ -100,14 +165,21 @@ function Header({
   return (
     <header className="sticky top-0 z-50 backdrop-blur-lg bg-white/80 border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-        <a href="#top" className="flex items-center gap-3">
+        <a
+          href="#top"
+          className="flex items-center gap-3"
+        >
           <img
             src={logo}
             alt="El Punty"
             className="w-11 h-11 rounded-full object-cover shadow-soft"
           />
+
           <div className="leading-tight">
-            <div className="font-bold text-brand-blue text-lg">EL PUNTY</div>
+            <div className="font-bold text-brand-blue text-lg">
+              EL PUNTY
+            </div>
+
             <div className="text-[10px] tracking-[0.2em] text-brand-gray">
               BARBER SHOP
             </div>
@@ -115,16 +187,31 @@ function Header({
         </a>
 
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
-          <a href="#services" className="hover:text-brand-red transition">
+          <a
+            href="#services"
+            className="hover:text-brand-red transition"
+          >
             {t.nav.services}
           </a>
-          <a href="#booking" className="hover:text-brand-red transition">
+
+          <a
+            href="#booking"
+            className="hover:text-brand-red transition"
+          >
             {t.nav.booking}
           </a>
-          <a href="#walkin" className="hover:text-brand-red transition">
+
+          <a
+            href="#walkin"
+            className="hover:text-brand-red transition"
+          >
             {t.nav.walkin}
           </a>
-          <a href="#contact" className="hover:text-brand-red transition">
+
+          <a
+            href="#contact"
+            className="hover:text-brand-red transition"
+          >
             {t.nav.contact}
           </a>
         </nav>
@@ -142,6 +229,7 @@ function Header({
             >
               ES
             </button>
+
             <button
               type="button"
               onClick={() => setLang("en")}
@@ -169,13 +257,17 @@ function Header({
 
 function Hero({ t }: { t: any }) {
   return (
-    <section id="top" className="relative overflow-hidden">
+    <section
+      id="top"
+      className="relative overflow-hidden"
+    >
       <div className="absolute inset-0">
         <img
           src={hero}
           alt="El Punty interior"
           className="w-full h-full object-cover"
         />
+
         <div className="absolute inset-0 bg-gradient-to-r from-brand-black/85 via-brand-black/60 to-brand-black/30" />
       </div>
 
@@ -184,12 +276,15 @@ function Hero({ t }: { t: any }) {
           <span className="inline-block px-3 py-1 bg-brand-red/90 rounded-full text-xs font-semibold tracking-wider mb-6">
             LONDON · SE1
           </span>
+
           <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-5">
             {t.hero.title}
           </h1>
+
           <p className="text-lg md:text-xl text-white/85 mb-8 max-w-xl">
             {t.hero.subtitle}
           </p>
+
           <div className="flex flex-wrap gap-3">
             <a
               href="#booking"
@@ -197,6 +292,7 @@ function Hero({ t }: { t: any }) {
             >
               {t.hero.book}
             </a>
+
             <a
               href="#solution"
               className="bg-white/10 backdrop-blur border border-white/30 text-white px-7 py-3.5 rounded-full font-semibold hover:bg-white/20 transition"
@@ -216,7 +312,11 @@ function Problem({ t }: { t: any }) {
   return (
     <section className="py-20 md:py-28 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
-        <SectionTitle title={t.problem.title} subtitle={t.problem.subtitle} />
+        <SectionTitle
+          title={t.problem.title}
+          subtitle={t.problem.subtitle}
+        />
+
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-12">
           {t.problem.items.map((it: any, i: number) => (
             <div
@@ -224,10 +324,14 @@ function Problem({ t }: { t: any }) {
               className="bg-card rounded-2xl p-6 shadow-card hover:shadow-soft hover:-translate-y-1 transition"
             >
               <div className="text-4xl mb-4">{icons[i]}</div>
+
               <h3 className="font-bold text-lg mb-2 text-brand-blue">
                 {it.t}
               </h3>
-              <p className="text-sm text-muted-foreground">{it.d}</p>
+
+              <p className="text-sm text-muted-foreground">
+                {it.d}
+              </p>
             </div>
           ))}
         </div>
@@ -241,12 +345,17 @@ function DataSection({ t }: { t: any }) {
     <section className="py-20 md:py-28 px-4 sm:px-6 bg-gradient-to-br from-secondary to-white">
       <div className="max-w-7xl mx-auto">
         <SectionTitle title={t.data.title} />
+
         <div className="grid md:grid-cols-2 gap-6 mt-12">
           <div className="bg-card rounded-3xl p-10 shadow-card">
             <div className="text-6xl md:text-7xl font-bold text-brand-red mb-2">
               -30%
             </div>
-            <p className="text-muted-foreground">{t.data.lost}</p>
+
+            <p className="text-muted-foreground">
+              {t.data.lost}
+            </p>
+
             <div className="mt-6 h-3 bg-secondary rounded-full overflow-hidden">
               <div
                 className="h-full bg-brand-red rounded-full"
@@ -259,15 +368,21 @@ function DataSection({ t }: { t: any }) {
             <div className="text-6xl md:text-7xl font-bold text-brand-blue mb-2">
               £15,000
             </div>
-            <p className="text-muted-foreground">{t.data.money}</p>
+
+            <p className="text-muted-foreground">
+              {t.data.money}
+            </p>
+
             <div className="mt-6 flex items-end gap-2 h-20">
-              {[40, 65, 50, 80, 45, 90, 70].map((h, i) => (
-                <div
-                  key={i}
-                  className="flex-1 bg-gradient-to-t from-brand-blue to-brand-red rounded-t-lg"
-                  style={{ height: `${h}%` }}
-                />
-              ))}
+              {[40, 65, 50, 80, 45, 90, 70].map(
+                (h, i) => (
+                  <div
+                    key={i}
+                    className="flex-1 bg-gradient-to-t from-brand-blue to-brand-red rounded-t-lg"
+                    style={{ height: `${h}%` }}
+                  />
+                ),
+              )}
             </div>
           </div>
         </div>
@@ -280,9 +395,16 @@ function Solution({ t }: { t: any }) {
   const icons = ["📅", "⚡", "✨"];
 
   return (
-    <section id="solution" className="py-20 md:py-28 px-4 sm:px-6">
+    <section
+      id="solution"
+      className="py-20 md:py-28 px-4 sm:px-6"
+    >
       <div className="max-w-7xl mx-auto">
-        <SectionTitle title={t.solution.title} subtitle={t.solution.subtitle} />
+        <SectionTitle
+          title={t.solution.title}
+          subtitle={t.solution.subtitle}
+        />
+
         <div className="grid md:grid-cols-3 gap-6 mt-12">
           {t.solution.steps.map((s: any, i: number) => (
             <div
@@ -292,11 +414,18 @@ function Solution({ t }: { t: any }) {
               <div className="absolute -top-5 left-8 w-10 h-10 rounded-full bg-gradient-brand text-white font-bold flex items-center justify-center shadow-soft">
                 {i + 1}
               </div>
-              <div className="text-5xl mb-4 mt-2">{icons[i]}</div>
+
+              <div className="text-5xl mb-4 mt-2">
+                {icons[i]}
+              </div>
+
               <h3 className="font-bold text-xl mb-2 text-brand-blue">
                 {s.t}
               </h3>
-              <p className="text-muted-foreground">{s.d}</p>
+
+              <p className="text-muted-foreground">
+                {s.d}
+              </p>
             </div>
           ))}
         </div>
@@ -305,14 +434,24 @@ function Solution({ t }: { t: any }) {
   );
 }
 
-function Services({ t, lang }: { t: any; lang: Lang }) {
+function Services({
+  t,
+  lang,
+}: {
+  t: any;
+  lang: Lang;
+}) {
   return (
     <section
       id="services"
       className="py-20 md:py-28 px-4 sm:px-6 bg-secondary/40"
     >
       <div className="max-w-7xl mx-auto">
-        <SectionTitle title={t.services.title} subtitle={t.services.subtitle} />
+        <SectionTitle
+          title={t.services.title}
+          subtitle={t.services.subtitle}
+        />
+
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-12">
           {services.map((s) => (
             <div
@@ -320,14 +459,19 @@ function Services({ t, lang }: { t: any; lang: Lang }) {
               className="bg-card rounded-2xl p-6 shadow-card hover:shadow-soft hover:-translate-y-1 transition flex items-center gap-4"
             >
               <div className="text-4xl">{s.icon}</div>
+
               <div className="flex-1">
                 <h3 className="font-semibold text-foreground">
-                  {lang === "es" ? s.name_es : s.name_en}
+                  {lang === "es"
+                    ? s.name_es
+                    : s.name_en}
                 </h3>
+
                 <p className="text-xs text-muted-foreground">
                   {s.duration} {t.services.min}
                 </p>
               </div>
+
               <div className="text-brand-blue font-bold text-lg">
                 £{s.price}
               </div>
@@ -339,7 +483,13 @@ function Services({ t, lang }: { t: any; lang: Lang }) {
   );
 }
 
-function Booking({ t, lang }: { t: any; lang: Lang }) {
+function Booking({
+  t,
+  lang,
+}: {
+  t: any;
+  lang: Lang;
+}) {
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -351,30 +501,81 @@ function Booking({ t, lang }: { t: any; lang: Lang }) {
     comments: "",
   });
 
-  const [confirmed, setConfirmed] = useState<any>(null);
+  const [confirmed, setConfirmed] =
+    useState<any>(null);
+
   const [error, setError] = useState("");
+
   const [saving, setSaving] = useState(false);
 
-  const selected = services.find((s) => s.id === form.service) || services[0];
+  const [bookings, setBookings] = useState<any[]>(
+    [],
+  );
+
+  const [loadingSlots, setLoadingSlots] =
+    useState(false);
+
+  const selected =
+    services.find(
+      (s) => s.id === form.service,
+    ) || services[0];
 
   const currentProfessionals =
-    selected.category === "hair" ? hairProfessionals : barberProfessionals;
+    selected.category === "hair"
+      ? hairProfessionals
+      : barberProfessionals;
 
-  const update = (key: string, value: string) => {
+  useEffect(() => {
+    const loadBookings = async () => {
+      if (!form.date) return;
+
+      setLoadingSlots(true);
+
+      try {
+        const result = await listBookings();
+
+        setBookings(result.data || []);
+      } catch (err) {
+        console.error(
+          "Failed loading bookings",
+          err,
+        );
+      } finally {
+        setLoadingSlots(false);
+      }
+    };
+
+    loadBookings();
+  }, [form.date]);
+
+  const update = (
+    key: string,
+    value: string,
+  ) => {
     setError("");
 
     setForm((current) => {
-      const next = { ...current, [key]: value };
+      const next = {
+        ...current,
+        [key]: value,
+      };
 
       if (key === "service") {
-        const nextService = services.find((s) => s.id === value) || services[0];
+        const nextService =
+          services.find(
+            (s) => s.id === value,
+          ) || services[0];
 
         const nextProfessionals =
           nextService.category === "hair"
             ? hairProfessionals
             : barberProfessionals;
 
-        if (!nextProfessionals.includes(next.barber)) {
+        if (
+          !nextProfessionals.includes(
+            next.barber,
+          )
+        ) {
           next.barber = "any";
         }
       }
@@ -385,39 +586,79 @@ function Booking({ t, lang }: { t: any; lang: Lang }) {
 
   const todayIso = () => {
     const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
-      2,
-      "0",
-    )}-${String(d.getDate()).padStart(2, "0")}`;
+
+    return `${d.getFullYear()}-${String(
+      d.getMonth() + 1,
+    ).padStart(2, "0")}-${String(
+      d.getDate(),
+    ).padStart(2, "0")}`;
   };
 
-  const isValidUkMobile = (phone: string) => {
-    const cleaned = phone.replace(/\s+/g, "");
-    return /^(07\d{9}|\+447\d{9}|447\d{9})$/.test(cleaned);
+  const isValidUkMobile = (
+    phone: string,
+  ) => {
+    const cleaned = phone.replace(
+      /\s+/g,
+      "",
+    );
+
+    return /^(07\d{9}|\+447\d{9}|447\d{9})$/.test(
+      cleaned,
+    );
   };
 
-  const normalizeUkMobile = (phone: string) => {
-    const cleaned = phone.replace(/\s+/g, "");
-    if (cleaned.startsWith("+44")) return cleaned;
-    if (cleaned.startsWith("44")) return `+${cleaned}`;
-    if (cleaned.startsWith("07")) return `+44${cleaned.slice(1)}`;
+  const normalizeUkMobile = (
+    phone: string,
+  ) => {
+    const cleaned = phone.replace(
+      /\s+/g,
+      "",
+    );
+
+    if (cleaned.startsWith("+44"))
+      return cleaned;
+
+    if (cleaned.startsWith("44"))
+      return `+${cleaned}`;
+
+    if (cleaned.startsWith("07"))
+      return `+44${cleaned.slice(1)}`;
+
     return cleaned;
   };
 
-  const isValidEmail = (email: string) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-
-  const getDayOfWeek = (date: string) => {
-    const [year, month, day] = date.split("-").map(Number);
-    return new Date(year, month - 1, day).getDay();
+  const isValidEmail = (
+    email: string,
+  ) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+      email.trim(),
+    );
   };
 
-  const timeToMinutes = (time: string) => {
-    const [h, m] = time.split(":").map(Number);
+  const getDayOfWeek = (
+    date: string,
+  ) => {
+    const [year, month, day] = date
+      .split("-")
+      .map(Number);
+
+    return new Date(
+      year,
+      month - 1,
+      day,
+    ).getDay();
+  };
+
+  const timeToMinutes = (
+    time: string,
+  ) => {
+    const [h, m] = time
+      .split(":")
+      .map(Number);
+
     return h * 60 + m;
   };
-
-  const isActiveBooking = (status?: string) => {
+const isActiveBooking = (status?: string) => {
     return status === "confirmed" || status === "pending";
   };
 
@@ -430,7 +671,10 @@ function Booking({ t, lang }: { t: any; lang: Lang }) {
     const start = timeToMinutes(time);
     const end = start + duration;
 
-    if (day === 0) return start >= 10 * 60 && end <= 17 * 60;
+    if (day === 0) {
+      return start >= 10 * 60 && end <= 17 * 60;
+    }
+
     return start >= 9 * 60 && end <= 19 * 60;
   };
 
@@ -444,7 +688,10 @@ function Booking({ t, lang }: { t: any; lang: Lang }) {
     if (booking.date !== date) return false;
 
     const existingTime = String(booking.time || "").slice(0, 5);
-    if (!existingTime || !existingTime.includes(":")) return false;
+
+    if (!existingTime || !existingTime.includes(":")) {
+      return false;
+    }
 
     const existingStart = timeToMinutes(existingTime);
     const existingDuration = Number(booking.duration) || 30;
@@ -457,13 +704,13 @@ function Booking({ t, lang }: { t: any; lang: Lang }) {
   };
 
   const professionalIsBusy = (
-    bookings: any[],
+    bookingList: any[],
     professionalName: string,
     date: string,
     time: string,
     duration: number,
   ) => {
-    return bookings.some((booking) => {
+    return bookingList.some((booking) => {
       if (!bookingOverlaps(booking, date, time, duration)) return false;
 
       return (
@@ -474,20 +721,26 @@ function Booking({ t, lang }: { t: any; lang: Lang }) {
   };
 
   const findAvailableProfessional = (
-    bookings: any[],
+    bookingList: any[],
     date: string,
     time: string,
     duration: number,
   ) => {
     const available = currentProfessionals.filter(
       (professional) =>
-        !professionalIsBusy(bookings, professional, date, time, duration),
+        !professionalIsBusy(
+          bookingList,
+          professional,
+          date,
+          time,
+          duration,
+        ),
     );
 
     if (available.length === 0) return null;
 
     const workload = available.map((professional) => {
-      const count = bookings.filter(
+      const count = bookingList.filter(
         (booking) =>
           isActiveBooking(booking.status) &&
           booking.date === date &&
@@ -495,17 +748,72 @@ function Booking({ t, lang }: { t: any; lang: Lang }) {
             professional.toLowerCase(),
       ).length;
 
-      return { professional, count };
+      return {
+        professional,
+        count,
+      };
     });
 
     workload.sort((a, b) => {
       if (a.count !== b.count) return a.count - b.count;
-      return currentProfessionals.indexOf(a.professional) -
-        currentProfessionals.indexOf(b.professional);
+
+      return (
+        currentProfessionals.indexOf(a.professional) -
+        currentProfessionals.indexOf(b.professional)
+      );
     });
 
     return workload[0].professional;
   };
+
+  const generateTimeSlots = () => {
+    const slots: string[] = [];
+
+    if (!form.date) return slots;
+
+    const day = getDayOfWeek(form.date);
+    const startHour = day === 0 ? 10 : 9;
+    const endHour = day === 0 ? 17 : 19;
+
+    for (let hour = startHour; hour < endHour; hour++) {
+      for (const minute of [0, 30]) {
+        const hh = String(hour).padStart(2, "0");
+        const mm = String(minute).padStart(2, "0");
+        const slot = `${hh}:${mm}`;
+
+        if (isValidOpeningTime(form.date, slot, selected.duration)) {
+          slots.push(slot);
+        }
+      }
+    }
+
+    return slots;
+  };
+
+  const availableSlots = generateTimeSlots().filter((slot) => {
+    if (!form.date) return false;
+
+    if (form.barber === "any") {
+      return currentProfessionals.some(
+        (professional) =>
+          !professionalIsBusy(
+            bookings,
+            professional,
+            form.date,
+            slot,
+            selected.duration,
+          ),
+      );
+    }
+
+    return !professionalIsBusy(
+      bookings,
+      form.barber,
+      form.date,
+      slot,
+      selected.duration,
+    );
+  });
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -528,7 +836,10 @@ function Booking({ t, lang }: { t: any; lang: Lang }) {
       return;
     }
 
-    if (!form.time || !isValidOpeningTime(form.date, form.time, selected.duration)) {
+    if (
+      !form.time ||
+      !isValidOpeningTime(form.date, form.time, selected.duration)
+    ) {
       setError(
         "Horario no disponible. Lunes a sábado 09:00–19:00. Domingos 10:00–17:00.",
       );
@@ -588,29 +899,33 @@ function Booking({ t, lang }: { t: any; lang: Lang }) {
       };
 
       const saved = await createBooking(booking);
-try {
-  if (booking.email) {
-    await supabase.functions.invoke("send-booking-confirmation", {
-      body: {
-        to: booking.email,
-        customer_name: booking.name,
-        service: lang === "es" ? selected.name_es : selected.name_en,
-        barber: finalProfessional,
-        appointment_date: booking.date,
-        appointment_time: booking.time,
-        price: booking.price,
-      },
-    });
-  }
-} catch (emailError) {
-  console.error("Booking confirmation email failed:", emailError);
-}
+
+      try {
+        if (booking.email) {
+          await supabase.functions.invoke("send-booking-confirmation", {
+            body: {
+              to: booking.email,
+              customer_name: booking.name,
+              service: lang === "es" ? selected.name_es : selected.name_en,
+              barber: finalProfessional,
+              appointment_date: booking.date,
+              appointment_time: booking.time,
+              price: booking.price,
+            },
+          });
+        }
+      } catch (emailError) {
+        console.error("Booking confirmation email failed:", emailError);
+      }
+
       setConfirmed({
         ...booking,
         ...saved,
         barber: finalProfessional,
         serviceLabel: lang === "es" ? selected.name_es : selected.name_en,
       });
+
+      setBookings((current) => [...current, booking]);
 
       setForm({
         name: "",
@@ -629,7 +944,6 @@ try {
       setSaving(false);
     }
   };
-
   return (
     <section id="booking" className="py-20 md:py-28 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto">
@@ -710,13 +1024,27 @@ try {
           </Field>
 
           <Field label={t.booking.time}>
-            <input
+            <select
               required
-              type="time"
               value={form.time}
               onChange={(e) => update("time", e.target.value)}
               className={inputCls}
-            />
+              disabled={!form.date || loadingSlots}
+            >
+              <option value="">
+                {loadingSlots
+                  ? "Cargando horarios..."
+                  : form.date
+                    ? "Selecciona una hora"
+                    : "Primero elige fecha"}
+              </option>
+
+              {availableSlots.map((slot) => (
+                <option key={slot} value={slot}>
+                  {slot}
+                </option>
+              ))}
+            </select>
           </Field>
 
           <Field label={t.booking.comments} className="md:col-span-2">
@@ -744,6 +1072,7 @@ try {
                   £{selected.price}
                 </span>
               </div>
+
               <div>
                 <span className="text-muted-foreground">
                   {t.booking.duration}:{" "}
@@ -756,7 +1085,7 @@ try {
 
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || loadingSlots}
               className="bg-gradient-brand text-white px-8 py-3 rounded-full font-semibold shadow-soft hover:scale-105 transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {saving ? "Guardando…" : t.booking.submit}
@@ -779,10 +1108,13 @@ try {
               alt="El Punty"
               className="w-20 h-20 rounded-full mx-auto mb-4 shadow-soft"
             />
+
             <div className="text-5xl mb-3">✅</div>
+
             <h3 className="text-2xl font-bold text-brand-blue mb-2">
               {t.booking.success}
             </h3>
+
             <p className="text-muted-foreground mb-4">
               {t.booking.successDesc}
             </p>
@@ -791,14 +1123,19 @@ try {
               <div>
                 <b>{confirmed.name}</b>
               </div>
+
               <div>
                 {confirmed.date} · {confirmed.time}
               </div>
+
               <div>
                 {confirmed.serviceLabel || confirmed.service} — £
                 {confirmed.price}
               </div>
-              <div className="text-muted-foreground">{confirmed.barber}</div>
+
+              <div className="text-muted-foreground">
+                {confirmed.barber}
+              </div>
             </div>
 
             <button
@@ -813,7 +1150,6 @@ try {
     </section>
   );
 }
-
 const inputCls =
   "w-full px-4 py-3 rounded-xl bg-secondary/60 border border-transparent focus:border-brand-blue focus:bg-white focus:outline-none transition text-sm";
 
@@ -935,6 +1271,7 @@ function Benefits({ t }: { t: any }) {
     <section className="py-20 md:py-28 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
         <SectionTitle title={t.benefits.title} />
+
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-12">
           {t.benefits.items.map((b: any, i: number) => (
             <div
@@ -959,6 +1296,7 @@ function Footer({ t }: { t: any }) {
         <div>
           <div className="flex items-center gap-3 mb-4">
             <img src={logo} alt="El Punty" className="w-12 h-12 rounded-full" />
+
             <div>
               <div className="font-bold text-lg">EL PUNTY</div>
               <div className="text-[10px] tracking-[0.2em] text-white/60">
@@ -992,7 +1330,7 @@ function Footer({ t }: { t: any }) {
       </div>
 
       <div className="max-w-7xl mx-auto mt-12 pt-6 border-t border-white/10 text-xs text-white/50 text-center">
-        © {new Date().getFullYear()} El Punty Barber Shop. {t.footer.rights}
+        ©️ {new Date().getFullYear()} El Punty Barber Shop. {t.footer.rights}
       </div>
     </footer>
   );
@@ -1010,6 +1348,7 @@ function SectionTitle({
       <h2 className="text-3xl md:text-5xl font-bold text-brand-blue mb-3">
         {title}
       </h2>
+
       {subtitle && <p className="text-muted-foreground text-lg">{subtitle}</p>}
     </div>
   );

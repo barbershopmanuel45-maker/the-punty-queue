@@ -199,32 +199,117 @@ function AdminPage() {
     );
   };
 
-  const refresh = async (bizId?: string | null) => {
+  const normalizeBookingRow = (row: any): Booking => {
+    const date =
+      row.date ||
+      row.appointment_date ||
+      row.booking_date ||
+      "";
+
+    const rawTime =
+      row.time ||
+      row.appointment_time ||
+      row.booking_time ||
+      "";
+
+    const createdAt =
+      row.createdAt ||
+      row.created_at ||
+      row.inserted_at ||
+      Date.now();
+
+    return {
+      id: row.id,
+      name:
+        row.name ||
+        row.customer_name ||
+        row.client_name ||
+        "",
+      phone: row.phone || "",
+      email: row.email || "",
+      service:
+        row.service ||
+        row.service_name ||
+        row.service_id ||
+        "",
+      barber:
+        row.barber ||
+        row.professional ||
+        row.professional_name ||
+        row.barber_name ||
+        "",
+      date,
+      time: String(rawTime || "").slice(0, 5),
+      comments:
+        row.comments ||
+        row.notes ||
+        "",
+      price:
+        Number(row.price ?? row.service_price ?? 0) || 0,
+      duration:
+        Number(row.duration ?? row.service_duration ?? 30) || 30,
+      createdAt:
+        typeof createdAt === "number"
+          ? createdAt
+          : new Date(createdAt).getTime() || Date.now(),
+      status: row.status || "confirmed",
+      reminder_sent: Boolean(row.reminder_sent),
+      business_id: row.business_id || null,
+    };
+  };
+
+  const mergeBookings = (items: Booking[]) => {
+    const map = new Map<string, Booking>();
+
+    items.forEach((item) => {
+      const key =
+        String(item.id || "") ||
+        `${item.name}-${item.phone}-${item.date}-${item.time}-${item.service}`;
+
+      if (!map.has(key)) {
+        map.set(key, item);
+      }
+    });
+
+    return Array.from(map.values());
+  };
+
+  const refresh = async (_bizId?: string | null) => {
     setLoading(true);
 
-    const id =
-      bizId !== undefined
-        ? bizId
-        : profile?.business_id ?? null;
-
     try {
-      const [bk, wk, rm] = await Promise.all([
-        listBookings(id),
-        listWalkins(id),
-        listReminders(id),
+      const [bk, wk, rm, rawAppointments] = await Promise.all([
+        // Importante: aquí NO filtramos por business_id.
+        // Así el admin muestra también reservas creadas desde la web pública.
+        listBookings(null),
+        listWalkins(null),
+        listReminders(null),
+        supabase.from("appointments").select("*"),
       ]);
 
-      setBookings(bk.data || []);
+      const dataBookings = (bk.data || []).map(normalizeBookingRow);
+
+      const directBookings =
+        rawAppointments.error || !rawAppointments.data
+          ? []
+          : rawAppointments.data.map(normalizeBookingRow);
+
+      setBookings(mergeBookings([...dataBookings, ...directBookings]));
       setWalkins(wk.data || []);
       setReminders(rm.data || []);
 
       setSource(
-        bk.source === "supabase" ||
+        !rawAppointments.error ||
+          bk.source === "supabase" ||
           wk.source === "supabase" ||
           rm.source === "supabase"
           ? "supabase"
           : "localStorage",
       );
+
+      if (rawAppointments.error) {
+        console.error("[admin] appointments direct load failed", rawAppointments.error);
+      }
     } finally {
       setLoading(false);
     }
