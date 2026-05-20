@@ -1,133 +1,75 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import logo from "@/assets/logo.jpeg";
+import { useState, type FormEvent } from "react";
+import { supabase } from "../lib/supabase";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({
-    meta: [
-      { title: "Login — El Punty" },
-      { name: "robots", content: "noindex,nofollow" },
-    ],
-  }),
   component: LoginPage,
 });
 
 function LoginPage() {
   const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [checking, setChecking] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    let active = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (!active) return;
-      if (data.session) navigate({ to: "/admin", replace: true });
-      else setChecking(false);
-    });
-    const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session) navigate({ to: "/admin", replace: true });
-    });
-    return () => {
-      active = false;
-      listener.subscription.unsubscribe();
-    };
-  }, [navigate]);
-
-  const friendly = (msg: string) => {
-    const m = msg.toLowerCase();
-    if (m.includes("invalid login")) return "Email o contraseña incorrectos.";
-    if (m.includes("email not confirmed")) return "Debes confirmar el email antes de entrar.";
-    if (m.includes("too many requests")) return "Demasiados intentos. Espera unos minutos.";
-    return "No se pudo iniciar sesión. Revisa los datos e inténtalo de nuevo.";
-  };
-
-  const onSubmit = async (e: React.FormEvent) => {
+  async function handleLogin(e: FormEvent) {
     e.preventDefault();
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanPassword = password.trim();
-    if (!cleanEmail || !cleanPassword) {
-      setError("Introduce email y contraseña.");
-      return;
-    }
-    setError(null);
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: cleanEmail,
-      password: cleanPassword,
-    });
-    setLoading(false);
-    if (error) {
-      setError(friendly(error.message));
-      return;
-    }
-    navigate({ to: "/admin", replace: true });
-  };
 
-  if (checking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-secondary/40">
-        <p className="text-sm text-muted-foreground">Comprobando sesión…</p>
-      </div>
-    );
+    setLoading(true);
+    setError("");
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    navigate({ to: "/admin" });
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-secondary/40 px-4">
-      <div className="w-full max-w-md bg-card rounded-2xl shadow-card p-8">
-        <div className="flex flex-col items-center mb-6">
-          <img src={logo} alt="El Punty" className="w-16 h-16 rounded-xl object-cover mb-3 shadow-soft" />
-          <h1 className="text-xl font-bold text-brand-blue">Iniciar sesión</h1>
-          <p className="text-xs text-muted-foreground text-center">
-            Accede al panel de gestión de El Punty.
-          </p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <form
+        onSubmit={handleLogin}
+        className="w-full max-w-md rounded-2xl border bg-card p-8 shadow-xl"
+      >
+        <h1 className="mb-2 text-center text-3xl font-bold">
+          Admin Login
+        </h1>
 
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div>
-            <label className="text-xs font-semibold text-muted-foreground">Email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/30"
-              placeholder="admin@elpunty.com"
-              autoComplete="email"
-              disabled={loading}
-            />
-          </div>
+        <p className="mb-6 text-center text-muted-foreground">
+          El Punty Barber Shop
+        </p>
 
-          <div>
-            <label className="text-xs font-semibold text-muted-foreground">Contraseña</label>
-            <div className="mt-1 flex rounded-lg border bg-white overflow-hidden focus-within:ring-2 focus-within:ring-brand-blue/30">
-              <input
-                type={showPassword ? "text" : "password"}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 text-sm focus:outline-none"
-                placeholder="••••••••"
-                autoComplete="current-password"
-                disabled={loading}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                className="px-3 text-xs font-semibold text-brand-blue hover:bg-secondary/60"
-                disabled={loading}
-              >
-                {showPassword ? "Ocultar" : "Ver"}
-              </button>
-            </div>
-          </div>
+        <div className="space-y-4">
+          <input
+            required
+            type="email"
+            placeholder="Email"
+            className="w-full rounded-xl border p-3"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+
+          <input
+            required
+            type="password"
+            placeholder="Password"
+            className="w-full rounded-xl border p-3"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
           {error && (
-            <div className="text-xs font-semibold bg-red-50 text-red-600 rounded-lg px-3 py-2">
+            <div className="text-sm text-red-500">
               {error}
             </div>
           )}
@@ -135,12 +77,12 @@ function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full text-sm font-semibold px-4 py-2.5 rounded-full bg-gradient-brand text-white shadow-soft disabled:opacity-60"
+            className="w-full rounded-xl bg-blue-600 p-3 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
           >
-            {loading ? "Entrando…" : "Entrar"}
+            {loading ? "Entrando..." : "Entrar"}
           </button>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   );
 }
