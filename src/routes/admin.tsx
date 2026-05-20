@@ -413,21 +413,18 @@ function AdminPage() {
 
     loadAuthAndProfile();
 
-    const { data: sub } =
-      supabase.auth.onAuthStateChange(
-        (_event, session) => {
-          if (!session) {
-            setCurrentBusinessId(null);
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        setCurrentBusinessId(null);
+        setProfile(null);
+        setAuthChecked(false);
 
-            setProfile(null);
-
-            navigate({
-              to: "/login",
-              replace: true,
-            });
-          }
-        },
-      );
+        navigate({
+          to: "/login",
+          replace: true,
+        });
+      }
+    });
 
     return () => {
       mounted = false;
@@ -947,7 +944,8 @@ function AdminPage() {
       </span>
     );
   };
-    if (!authChecked) {
+
+  if (!authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-secondary/40">
         <p className="text-sm text-muted-foreground">Cargando…</p>
