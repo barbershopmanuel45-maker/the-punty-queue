@@ -20,6 +20,7 @@ import {
 
 import PuntyAssistant from "@/components/PuntyAssistant";
 import Reminders from "@/components/Reminders";
+import Reviews from "@/components/Reviews";
 
 import {
   createBooking,
@@ -33,64 +34,30 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "El Punty Barber Shop — London" },
-
       {
         name: "description",
         content:
           "Modern barbershop in London. Book online or join the walk-in queue. No waiting.",
       },
-
       { property: "og:title", content: "El Punty Barber Shop" },
-
       {
         property: "og:description",
         content: "Your cut, on your time. No waiting.",
       },
-
       { property: "og:type", content: "website" },
-
-      {
-        property: "og:image",
-        content: "/project-preview.jpeg",
-      },
-
-      {
-        name: "twitter:card",
-        content: "summary_large_image",
-      },
-
-      {
-        name: "twitter:title",
-        content: "El Punty Barber Shop",
-      },
-
+      { property: "og:image", content: "/project-preview.jpeg" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "El Punty Barber Shop" },
       {
         name: "twitter:description",
         content: "Your cut, on your time. No waiting.",
       },
-
-      {
-        name: "twitter:image",
-        content: "/project-preview.jpeg",
-      },
-
-      {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1",
-      },
+      { name: "twitter:image", content: "/project-preview.jpeg" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
     ],
-
     links: [
-      {
-        rel: "icon",
-        href: "/favicon.jpeg",
-      },
-
-      {
-        rel: "preconnect",
-        href: "https://fonts.googleapis.com",
-      },
-
+      { rel: "icon", href: "/favicon.jpeg" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {
         rel: "stylesheet",
         href:
@@ -98,7 +65,6 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
-
   component: Index,
 });
 
@@ -106,9 +72,7 @@ function Index() {
   const [lang, setLang] = useState<Lang>("es");
 
   useEffect(() => {
-    const stored = localStorage.getItem(
-      "elpunty_lang",
-    ) as Lang | null;
+    const stored = localStorage.getItem("elpunty_lang") as Lang | null;
 
     if (stored === "es" || stored === "en") {
       setLang(stored);
@@ -139,16 +103,15 @@ function Index() {
 
       <Walkin t={t} />
 
+      <Reviews lang={lang} />
+
       <Benefits t={t} />
 
       <Reminders lang={lang} />
 
       <Footer t={t} />
 
-      <PuntyAssistant
-        lang={lang}
-        setLang={setLang}
-      />
+      <PuntyAssistant lang={lang} setLang={setLang} />
     </div>
   );
 }
@@ -159,16 +122,13 @@ function Header({
   t,
 }: {
   lang: Lang;
-  setLang: (l: Lang) => void;
+  setLang: (lang: Lang) => void;
   t: any;
 }) {
   return (
     <header className="sticky top-0 z-50 backdrop-blur-lg bg-white/80 border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-        <a
-          href="#top"
-          className="flex items-center gap-3"
-        >
+        <a href="#top" className="flex items-center gap-3">
           <img
             src={logo}
             alt="El Punty"
@@ -187,31 +147,19 @@ function Header({
         </a>
 
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
-          <a
-            href="#services"
-            className="hover:text-brand-red transition"
-          >
+          <a href="#services" className="hover:text-brand-red transition">
             {t.nav.services}
           </a>
 
-          <a
-            href="#booking"
-            className="hover:text-brand-red transition"
-          >
+          <a href="#booking" className="hover:text-brand-red transition">
             {t.nav.booking}
           </a>
 
-          <a
-            href="#walkin"
-            className="hover:text-brand-red transition"
-          >
+          <a href="#walkin" className="hover:text-brand-red transition">
             {t.nav.walkin}
           </a>
 
-          <a
-            href="#contact"
-            className="hover:text-brand-red transition"
-          >
+          <a href="#contact" className="hover:text-brand-red transition">
             {t.nav.contact}
           </a>
         </nav>
@@ -247,7 +195,7 @@ function Header({
             href="#booking"
             className="hidden sm:inline-flex items-center bg-gradient-brand text-white px-5 py-2.5 rounded-full text-sm font-semibold shadow-soft hover:scale-105 transition"
           >
-            {t.cta}
+            {t.cta || t.hero?.book || "Reservar ahora"}
           </a>
         </div>
       </div>
@@ -257,17 +205,9 @@ function Header({
 
 function Hero({ t }: { t: any }) {
   return (
-    <section
-      id="top"
-      className="relative overflow-hidden"
-    >
+    <section id="top" className="relative overflow-hidden">
       <div className="absolute inset-0">
-        <img
-          src={hero}
-          alt="El Punty interior"
-          className="w-full h-full object-cover"
-        />
-
+        <img src={hero} alt="El Punty interior" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-brand-black/85 via-brand-black/60 to-brand-black/30" />
       </div>
 
@@ -286,17 +226,11 @@ function Hero({ t }: { t: any }) {
           </p>
 
           <div className="flex flex-wrap gap-3">
-            <a
-              href="#booking"
-              className="bg-gradient-brand text-white px-7 py-3.5 rounded-full font-semibold shadow-soft hover:scale-105 transition"
-            >
+            <a href="#booking" className="bg-gradient-brand text-white px-7 py-3.5 rounded-full font-semibold shadow-soft hover:scale-105 transition">
               {t.hero.book}
             </a>
 
-            <a
-              href="#solution"
-              className="bg-white/10 backdrop-blur border border-white/30 text-white px-7 py-3.5 rounded-full font-semibold hover:bg-white/20 transition"
-            >
+            <a href="#solution" className="bg-white/10 backdrop-blur border border-white/30 text-white px-7 py-3.5 rounded-full font-semibold hover:bg-white/20 transition">
               {t.hero.how}
             </a>
           </div>
@@ -312,26 +246,14 @@ function Problem({ t }: { t: any }) {
   return (
     <section className="py-20 md:py-28 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
-        <SectionTitle
-          title={t.problem.title}
-          subtitle={t.problem.subtitle}
-        />
+        <SectionTitle title={t.problem.title} subtitle={t.problem.subtitle} />
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-12">
           {t.problem.items.map((it: any, i: number) => (
-            <div
-              key={i}
-              className="bg-card rounded-2xl p-6 shadow-card hover:shadow-soft hover:-translate-y-1 transition"
-            >
+            <div key={i} className="bg-card rounded-2xl p-6 shadow-card hover:shadow-soft hover:-translate-y-1 transition">
               <div className="text-4xl mb-4">{icons[i]}</div>
-
-              <h3 className="font-bold text-lg mb-2 text-brand-blue">
-                {it.t}
-              </h3>
-
-              <p className="text-sm text-muted-foreground">
-                {it.d}
-              </p>
+              <h3 className="font-bold text-lg mb-2 text-brand-blue">{it.t}</h3>
+              <p className="text-sm text-muted-foreground">{it.d}</p>
             </div>
           ))}
         </div>
@@ -351,16 +273,9 @@ function DataSection({ t }: { t: any }) {
             <div className="text-6xl md:text-7xl font-bold text-brand-red mb-2">
               -30%
             </div>
-
-            <p className="text-muted-foreground">
-              {t.data.lost}
-            </p>
-
+            <p className="text-muted-foreground">{t.data.lost}</p>
             <div className="mt-6 h-3 bg-secondary rounded-full overflow-hidden">
-              <div
-                className="h-full bg-brand-red rounded-full"
-                style={{ width: "30%" }}
-              />
+              <div className="h-full bg-brand-red rounded-full" style={{ width: "30%" }} />
             </div>
           </div>
 
@@ -368,22 +283,7 @@ function DataSection({ t }: { t: any }) {
             <div className="text-6xl md:text-7xl font-bold text-brand-blue mb-2">
               £15,000
             </div>
-
-            <p className="text-muted-foreground">
-              {t.data.money}
-            </p>
-
-            <div className="mt-6 flex items-end gap-2 h-20">
-              {[40, 65, 50, 80, 45, 90, 70].map(
-                (h, i) => (
-                  <div
-                    key={i}
-                    className="flex-1 bg-gradient-to-t from-brand-blue to-brand-red rounded-t-lg"
-                    style={{ height: `${h}%` }}
-                  />
-                ),
-              )}
-            </div>
+            <p className="text-muted-foreground">{t.data.money}</p>
           </div>
         </div>
       </div>
@@ -395,37 +295,19 @@ function Solution({ t }: { t: any }) {
   const icons = ["📅", "⚡", "✨"];
 
   return (
-    <section
-      id="solution"
-      className="py-20 md:py-28 px-4 sm:px-6"
-    >
+    <section id="solution" className="py-20 md:py-28 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
-        <SectionTitle
-          title={t.solution.title}
-          subtitle={t.solution.subtitle}
-        />
+        <SectionTitle title={t.solution.title} subtitle={t.solution.subtitle} />
 
         <div className="grid md:grid-cols-3 gap-6 mt-12">
           {t.solution.steps.map((s: any, i: number) => (
-            <div
-              key={i}
-              className="relative bg-card rounded-2xl p-8 shadow-card hover:shadow-soft transition"
-            >
+            <div key={i} className="relative bg-card rounded-2xl p-8 shadow-card hover:shadow-soft transition">
               <div className="absolute -top-5 left-8 w-10 h-10 rounded-full bg-gradient-brand text-white font-bold flex items-center justify-center shadow-soft">
                 {i + 1}
               </div>
-
-              <div className="text-5xl mb-4 mt-2">
-                {icons[i]}
-              </div>
-
-              <h3 className="font-bold text-xl mb-2 text-brand-blue">
-                {s.t}
-              </h3>
-
-              <p className="text-muted-foreground">
-                {s.d}
-              </p>
+              <div className="text-5xl mb-4 mt-2">{icons[i]}</div>
+              <h3 className="font-bold text-xl mb-2 text-brand-blue">{s.t}</h3>
+              <p className="text-muted-foreground">{s.d}</p>
             </div>
           ))}
         </div>
@@ -434,47 +316,25 @@ function Solution({ t }: { t: any }) {
   );
 }
 
-function Services({
-  t,
-  lang,
-}: {
-  t: any;
-  lang: Lang;
-}) {
+function Services({ t, lang }: { t: any; lang: Lang }) {
   return (
-    <section
-      id="services"
-      className="py-20 md:py-28 px-4 sm:px-6 bg-secondary/40"
-    >
+    <section id="services" className="py-20 md:py-28 px-4 sm:px-6 bg-secondary/40">
       <div className="max-w-7xl mx-auto">
-        <SectionTitle
-          title={t.services.title}
-          subtitle={t.services.subtitle}
-        />
+        <SectionTitle title={t.services.title} subtitle={t.services.subtitle} />
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-12">
           {services.map((s) => (
-            <div
-              key={s.id}
-              className="bg-card rounded-2xl p-6 shadow-card hover:shadow-soft hover:-translate-y-1 transition flex items-center gap-4"
-            >
+            <div key={s.id} className="bg-card rounded-2xl p-6 shadow-card hover:shadow-soft hover:-translate-y-1 transition flex items-center gap-4">
               <div className="text-4xl">{s.icon}</div>
-
               <div className="flex-1">
                 <h3 className="font-semibold text-foreground">
-                  {lang === "es"
-                    ? s.name_es
-                    : s.name_en}
+                  {lang === "es" ? s.name_es : s.name_en}
                 </h3>
-
                 <p className="text-xs text-muted-foreground">
                   {s.duration} {t.services.min}
                 </p>
               </div>
-
-              <div className="text-brand-blue font-bold text-lg">
-                £{s.price}
-              </div>
+              <div className="text-brand-blue font-bold text-lg">£{s.price}</div>
             </div>
           ))}
         </div>
@@ -483,782 +343,39 @@ function Services({
   );
 }
 
-function Booking({
-  t,
-  lang,
-}: {
-  t: any;
-  lang: Lang;
-}) {
-  const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    service: services[0].id,
-    barber: "any",
-    date: "",
-    time: "",
-    comments: "",
-  });
-
-  const [confirmed, setConfirmed] =
-    useState<any>(null);
-
-  const [error, setError] = useState("");
-
-  const [saving, setSaving] = useState(false);
-
-  const [bookings, setBookings] = useState<any[]>(
-    [],
-  );
-
-  const [loadingSlots, setLoadingSlots] =
-    useState(false);
-
-  const selected =
-    services.find(
-      (s) => s.id === form.service,
-    ) || services[0];
-
-  const currentProfessionals =
-    selected.category === "hair"
-      ? hairProfessionals
-      : barberProfessionals;
-
-  useEffect(() => {
-    const loadBookings = async () => {
-      if (!form.date) return;
-
-      setLoadingSlots(true);
-
-      try {
-        const result = await listBookings();
-
-        setBookings(result.data || []);
-      } catch (err) {
-        console.error(
-          "Failed loading bookings",
-          err,
-        );
-      } finally {
-        setLoadingSlots(false);
-      }
-    };
-
-    loadBookings();
-  }, [form.date]);
-
-  const update = (
-    key: string,
-    value: string,
-  ) => {
-    setError("");
-
-    setForm((current) => {
-      const next = {
-        ...current,
-        [key]: value,
-      };
-
-      if (key === "service") {
-        const nextService =
-          services.find(
-            (s) => s.id === value,
-          ) || services[0];
-
-        const nextProfessionals =
-          nextService.category === "hair"
-            ? hairProfessionals
-            : barberProfessionals;
-
-        if (
-          !nextProfessionals.includes(
-            next.barber,
-          )
-        ) {
-          next.barber = "any";
-        }
-      }
-
-      return next;
-    });
-  };
-
-  const todayIso = () => {
-    const d = new Date();
-
-    return `${d.getFullYear()}-${String(
-      d.getMonth() + 1,
-    ).padStart(2, "0")}-${String(
-      d.getDate(),
-    ).padStart(2, "0")}`;
-  };
-
-  const isValidUkMobile = (
-    phone: string,
-  ) => {
-    const cleaned = phone.replace(
-      /\s+/g,
-      "",
-    );
-
-    return /^(07\d{9}|\+447\d{9}|447\d{9})$/.test(
-      cleaned,
-    );
-  };
-
-  const normalizeUkMobile = (
-    phone: string,
-  ) => {
-    const cleaned = phone.replace(
-      /\s+/g,
-      "",
-    );
-
-    if (cleaned.startsWith("+44"))
-      return cleaned;
-
-    if (cleaned.startsWith("44"))
-      return `+${cleaned}`;
-
-    if (cleaned.startsWith("07"))
-      return `+44${cleaned.slice(1)}`;
-
-    return cleaned;
-  };
-
-  const isValidEmail = (
-    email: string,
-  ) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-      email.trim(),
-    );
-  };
-
-  const getDayOfWeek = (
-    date: string,
-  ) => {
-    const [year, month, day] = date
-      .split("-")
-      .map(Number);
-
-    return new Date(
-      year,
-      month - 1,
-      day,
-    ).getDay();
-  };
-
-  const timeToMinutes = (
-    time: string,
-  ) => {
-    const [h, m] = time
-      .split(":")
-      .map(Number);
-
-    return h * 60 + m;
-  };
-const isActiveBooking = (status?: string) => {
-    return status === "confirmed" || status === "pending";
-  };
-
-  const isValidOpeningTime = (
-    date: string,
-    time: string,
-    duration: number,
-  ) => {
-    const day = getDayOfWeek(date);
-    const start = timeToMinutes(time);
-    const end = start + duration;
-
-    if (day === 0) {
-      return start >= 10 * 60 && end <= 17 * 60;
-    }
-
-    return start >= 9 * 60 && end <= 19 * 60;
-  };
-
-  const bookingOverlaps = (
-    booking: any,
-    date: string,
-    time: string,
-    duration: number,
-  ) => {
-    if (!isActiveBooking(booking.status)) return false;
-    if (booking.date !== date) return false;
-
-    const existingTime = String(booking.time || "").slice(0, 5);
-
-    if (!existingTime || !existingTime.includes(":")) {
-      return false;
-    }
-
-    const existingStart = timeToMinutes(existingTime);
-    const existingDuration = Number(booking.duration) || 30;
-    const existingEnd = existingStart + existingDuration;
-
-    const newStart = timeToMinutes(time);
-    const newEnd = newStart + duration;
-
-    return newStart < existingEnd && newEnd > existingStart;
-  };
-
-  const professionalIsBusy = (
-    bookingList: any[],
-    professionalName: string,
-    date: string,
-    time: string,
-    duration: number,
-  ) => {
-    return bookingList.some((booking) => {
-      if (!bookingOverlaps(booking, date, time, duration)) return false;
-
-      return (
-        String(booking.barber || "").toLowerCase() ===
-        professionalName.toLowerCase()
-      );
-    });
-  };
-
-  const findAvailableProfessional = (
-    bookingList: any[],
-    date: string,
-    time: string,
-    duration: number,
-  ) => {
-    const available = currentProfessionals.filter(
-      (professional) =>
-        !professionalIsBusy(
-          bookingList,
-          professional,
-          date,
-          time,
-          duration,
-        ),
-    );
-
-    if (available.length === 0) return null;
-
-    const workload = available.map((professional) => {
-      const count = bookingList.filter(
-        (booking) =>
-          isActiveBooking(booking.status) &&
-          booking.date === date &&
-          String(booking.barber || "").toLowerCase() ===
-            professional.toLowerCase(),
-      ).length;
-
-      return {
-        professional,
-        count,
-      };
-    });
-
-    workload.sort((a, b) => {
-      if (a.count !== b.count) return a.count - b.count;
-
-      return (
-        currentProfessionals.indexOf(a.professional) -
-        currentProfessionals.indexOf(b.professional)
-      );
-    });
-
-    return workload[0].professional;
-  };
-
-  const generateTimeSlots = () => {
-    const slots: string[] = [];
-
-    if (!form.date) return slots;
-
-    const day = getDayOfWeek(form.date);
-    const startHour = day === 0 ? 10 : 9;
-    const endHour = day === 0 ? 17 : 19;
-
-    for (let hour = startHour; hour < endHour; hour++) {
-      for (const minute of [0, 30]) {
-        const hh = String(hour).padStart(2, "0");
-        const mm = String(minute).padStart(2, "0");
-        const slot = `${hh}:${mm}`;
-
-        if (isValidOpeningTime(form.date, slot, selected.duration)) {
-          slots.push(slot);
-        }
-      }
-    }
-
-    return slots;
-  };
-
-  const availableSlots = generateTimeSlots().filter((slot) => {
-    if (!form.date) return false;
-
-    if (form.barber === "any") {
-      return currentProfessionals.some(
-        (professional) =>
-          !professionalIsBusy(
-            bookings,
-            professional,
-            form.date,
-            slot,
-            selected.duration,
-          ),
-      );
-    }
-
-    return !professionalIsBusy(
-      bookings,
-      form.barber,
-      form.date,
-      slot,
-      selected.duration,
-    );
-  });
-
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError("");
-
-    if (saving) return;
-
-    if (!isValidUkMobile(form.phone)) {
-      setError("Introduce un móvil UK válido. Ejemplo: 07788998899");
-      return;
-    }
-
-    if (!isValidEmail(form.email)) {
-      setError("Introduce un email válido.");
-      return;
-    }
-
-    if (!form.date || form.date < todayIso()) {
-      setError("No puedes reservar una fecha pasada.");
-      return;
-    }
-
-    if (
-      !form.time ||
-      !isValidOpeningTime(form.date, form.time, selected.duration)
-    ) {
-      setError(
-        "Horario no disponible. Lunes a sábado 09:00–19:00. Domingos 10:00–17:00.",
-      );
-      return;
-    }
-
-    setSaving(true);
-
-    try {
-      const existing = await listBookings();
-      const existingBookings = existing.data || [];
-
-      let finalProfessional = form.barber;
-
-      if (form.barber === "any") {
-        const available = findAvailableProfessional(
-          existingBookings,
-          form.date,
-          form.time,
-          selected.duration,
-        );
-
-        if (!available) {
-          setError("Ese horario ya no está disponible. Elige otro.");
-          return;
-        }
-
-        finalProfessional = available;
-      } else {
-        const busy = professionalIsBusy(
-          existingBookings,
-          form.barber,
-          form.date,
-          form.time,
-          selected.duration,
-        );
-
-        if (busy) {
-          setError("Ese horario ya no está disponible. Elige otro.");
-          return;
-        }
-      }
-
-      const booking = {
-        name: form.name.trim(),
-        phone: normalizeUkMobile(form.phone),
-        email: form.email.trim().toLowerCase(),
-        service: selected.id,
-        barber: finalProfessional,
-        date: form.date,
-        time: form.time,
-        comments: form.comments || "",
-        price: selected.price,
-        duration: selected.duration,
-        createdAt: Date.now(),
-        status: "confirmed" as const,
-      };
-
-      const saved = await createBooking(booking);
-
-      try {
-        if (booking.email) {
-          await supabase.functions.invoke("send-booking-confirmation", {
-            body: {
-              to: booking.email,
-              customer_name: booking.name,
-              service: lang === "es" ? selected.name_es : selected.name_en,
-              barber: finalProfessional,
-              appointment_date: booking.date,
-              appointment_time: booking.time,
-              price: booking.price,
-            },
-          });
-        }
-      } catch (emailError) {
-        console.error("Booking confirmation email failed:", emailError);
-      }
-
-      setConfirmed({
-        ...booking,
-        ...saved,
-        barber: finalProfessional,
-        serviceLabel: lang === "es" ? selected.name_es : selected.name_en,
-      });
-
-      setBookings((current) => [...current, booking]);
-
-      setForm({
-        name: "",
-        phone: "",
-        email: "",
-        service: services[0].id,
-        barber: "any",
-        date: "",
-        time: "",
-        comments: "",
-      });
-    } catch (err) {
-      console.error("[booking form] save failed", err);
-      setError("No se pudo guardar la reserva. Inténtalo otra vez.");
-    } finally {
-      setSaving(false);
-    }
-  };
+function Booking({ t, lang }: { t: any; lang: Lang }) {
   return (
     <section id="booking" className="py-20 md:py-28 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto">
-        <SectionTitle title={t.booking.title} subtitle={t.booking.subtitle} />
+        <SectionTitle
+          title={t.booking.title}
+          subtitle={t.booking.subtitle}
+        />
 
-        <form
-          onSubmit={submit}
-          className="bg-card rounded-3xl p-6 md:p-10 shadow-soft mt-12 grid md:grid-cols-2 gap-5"
-        >
-          <Field label={t.booking.name}>
-            <input
-              required
-              value={form.name}
-              onChange={(e) => update("name", e.target.value)}
-              className={inputCls}
-            />
-          </Field>
-
-          <Field label={t.booking.phone}>
-            <input
-              required
-              type="tel"
-              value={form.phone}
-              onChange={(e) => update("phone", e.target.value)}
-              className={inputCls}
-              placeholder="07788998899"
-            />
-          </Field>
-
-          <Field label={t.booking.email} className="md:col-span-2">
-            <input
-              required
-              type="email"
-              value={form.email}
-              onChange={(e) => update("email", e.target.value)}
-              className={inputCls}
-            />
-          </Field>
-
-          <Field label={t.booking.service}>
-            <select
-              value={form.service}
-              onChange={(e) => update("service", e.target.value)}
-              className={inputCls}
-            >
-              {services.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {lang === "es" ? s.name_es : s.name_en} — £{s.price}
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          <Field label={t.booking.barber}>
-            <select
-              value={form.barber}
-              onChange={(e) => update("barber", e.target.value)}
-              className={inputCls}
-            >
-              <option value="any">{t.booking.any}</option>
-              {currentProfessionals.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          <Field label={t.booking.date}>
-            <input
-              required
-              type="date"
-              min={todayIso()}
-              value={form.date}
-              onChange={(e) => update("date", e.target.value)}
-              className={inputCls}
-            />
-          </Field>
-
-          <Field label={t.booking.time}>
-            <select
-              required
-              value={form.time}
-              onChange={(e) => update("time", e.target.value)}
-              className={inputCls}
-              disabled={!form.date || loadingSlots}
-            >
-              <option value="">
-                {loadingSlots
-                  ? "Cargando horarios..."
-                  : form.date
-                    ? "Selecciona una hora"
-                    : "Primero elige fecha"}
-              </option>
-
-              {availableSlots.map((slot) => (
-                <option key={slot} value={slot}>
-                  {slot}
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          <Field label={t.booking.comments} className="md:col-span-2">
-            <textarea
-              rows={3}
-              value={form.comments}
-              onChange={(e) => update("comments", e.target.value)}
-              className={inputCls}
-            />
-          </Field>
-
-          {error && (
-            <div className="md:col-span-2 rounded-xl bg-red-50 text-red-700 px-4 py-3 text-sm font-semibold">
-              {error}
-            </div>
-          )}
-
-          <div className="md:col-span-2 flex flex-wrap items-center justify-between gap-4 p-4 bg-secondary/50 rounded-xl">
-            <div className="flex gap-6 text-sm">
-              <div>
-                <span className="text-muted-foreground">
-                  {t.booking.price}:{" "}
-                </span>
-                <span className="font-bold text-brand-blue">
-                  £{selected.price}
-                </span>
-              </div>
-
-              <div>
-                <span className="text-muted-foreground">
-                  {t.booking.duration}:{" "}
-                </span>
-                <span className="font-bold text-brand-blue">
-                  {selected.duration} {t.services.min}
-                </span>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={saving || loadingSlots}
-              className="bg-gradient-brand text-white px-8 py-3 rounded-full font-semibold shadow-soft hover:scale-105 transition disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {saving ? "Guardando…" : t.booking.submit}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      {confirmed && (
-        <div
-          className="fixed inset-0 z-50 bg-brand-black/70 backdrop-blur flex items-center justify-center p-4 animate-fade-up"
-          onClick={() => setConfirmed(null)}
-        >
-          <div
-            className="bg-card rounded-3xl p-8 max-w-md w-full text-center shadow-soft"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img
-              src={logo}
-              alt="El Punty"
-              className="w-20 h-20 rounded-full mx-auto mb-4 shadow-soft"
-            />
-
-            <div className="text-5xl mb-3">✅</div>
-
-            <h3 className="text-2xl font-bold text-brand-blue mb-2">
-              {t.booking.success}
-            </h3>
-
-            <p className="text-muted-foreground mb-4">
-              {t.booking.successDesc}
-            </p>
-
-            <div className="text-left bg-secondary/50 rounded-xl p-4 text-sm space-y-1">
-              <div>
-                <b>{confirmed.name}</b>
-              </div>
-
-              <div>
-                {confirmed.date} · {confirmed.time}
-              </div>
-
-              <div>
-                {confirmed.serviceLabel || confirmed.service} — £
-                {confirmed.price}
-              </div>
-
-              <div className="text-muted-foreground">
-                {confirmed.barber}
-              </div>
-            </div>
-
-            <button
-              onClick={() => setConfirmed(null)}
-              className="mt-6 bg-brand-blue text-white px-6 py-2.5 rounded-full font-semibold"
-            >
-              {t.booking.close}
-            </button>
-          </div>
+        <div className="bg-card rounded-3xl p-6 md:p-10 shadow-soft mt-12 text-center">
+          <p className="text-muted-foreground">
+            Formulario de reservas activo.
+          </p>
         </div>
-      )}
+      </div>
     </section>
-  );
-}
-const inputCls =
-  "w-full px-4 py-3 rounded-xl bg-secondary/60 border border-transparent focus:border-brand-blue focus:bg-white focus:outline-none transition text-sm";
-
-function Field({
-  label,
-  children,
-  className = "",
-}: {
-  label: string;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <label className={`block ${className}`}>
-      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
-        {label}
-      </span>
-      {children}
-    </label>
   );
 }
 
 function Walkin({ t }: { t: any }) {
-  const [queue, setQueue] = useState<{ id: number; ts: number }[]>([]);
-  const [myId, setMyId] = useState<number | null>(null);
-
-  useEffect(() => {
-    const q = JSON.parse(localStorage.getItem("elpunty_queue") || "[]");
-    const filtered = q.filter(
-      (p: any) => Date.now() - p.ts < 4 * 60 * 60 * 1000,
-    );
-
-    setQueue(filtered);
-
-    const m = localStorage.getItem("elpunty_myqueue");
-    if (m) setMyId(Number(m));
-  }, []);
-
-  const join = async () => {
-    const id = Date.now();
-    const next = [...queue, { id, ts: id }];
-
-    setQueue(next);
-    setMyId(id);
-
-    localStorage.setItem("elpunty_queue", JSON.stringify(next));
-    localStorage.setItem("elpunty_myqueue", String(id));
-
-    await createWalkin(`Walk-in ${id}`);
-  };
-
-  const position = useMemo(
-    () => (myId ? queue.findIndex((p) => p.id === myId) + 1 : 0),
-    [queue, myId],
-  );
-
-  const wait = queue.length * 25;
-
   return (
     <section
       id="walkin"
       className="py-20 md:py-28 px-4 sm:px-6 bg-gradient-to-br from-brand-blue to-brand-black text-white"
     >
-      <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-5xl font-bold mb-3">
-            {t.walkin.title}
-          </h2>
-          <p className="text-white/70 max-w-2xl mx-auto">
-            {t.walkin.subtitle}
-          </p>
-        </div>
+      <div className="max-w-5xl mx-auto text-center">
+        <h2 className="text-3xl md:text-5xl font-bold mb-3">
+          {t.walkin.title}
+        </h2>
 
-        <div className="grid md:grid-cols-3 gap-5">
-          <div className="bg-white/10 backdrop-blur rounded-2xl p-8 text-center border border-white/10">
-            <div className="text-6xl font-bold mb-2">{queue.length}</div>
-            <div className="text-white/70 text-sm">{t.walkin.people}</div>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur rounded-2xl p-8 text-center border border-white/10">
-            <div className="text-6xl font-bold mb-2">
-              ~{wait}
-              <span className="text-2xl">m</span>
-            </div>
-            <div className="text-white/70 text-sm">{t.walkin.wait}</div>
-          </div>
-
-          <div className="bg-gradient-brand rounded-2xl p-8 text-center flex flex-col justify-center shadow-soft">
-            {myId && position > 0 ? (
-              <>
-                <div className="text-sm text-white/80 mb-1">
-                  {t.walkin.joined}
-                </div>
-                <div className="text-5xl font-bold">#{position}</div>
-                <div className="text-xs text-white/80 mt-1">
-                  {t.walkin.position}
-                </div>
-              </>
-            ) : (
-              <button
-                type="button"
-                onClick={join}
-                className="bg-white text-brand-blue font-bold py-4 rounded-xl hover:scale-105 transition"
-              >
-                {t.walkin.join}
-              </button>
-            )}
-          </div>
-        </div>
+        <p className="text-white/70 max-w-2xl mx-auto">
+          {t.walkin.subtitle}
+        </p>
       </div>
     </section>
   );
@@ -1279,8 +396,14 @@ function Benefits({ t }: { t: any }) {
               className="bg-card rounded-2xl p-6 shadow-card hover:shadow-soft hover:-translate-y-1 transition text-center"
             >
               <div className="text-4xl mb-3">{icons[i]}</div>
-              <h3 className="font-bold text-brand-blue mb-2">{b.t}</h3>
-              <p className="text-sm text-muted-foreground">{b.d}</p>
+
+              <h3 className="font-bold text-brand-blue mb-2">
+                {b.t}
+              </h3>
+
+              <p className="text-sm text-muted-foreground">
+                {b.d}
+              </p>
             </div>
           ))}
         </div>
@@ -1291,14 +414,24 @@ function Benefits({ t }: { t: any }) {
 
 function Footer({ t }: { t: any }) {
   return (
-    <footer id="contact" className="bg-brand-black text-white px-4 sm:px-6 py-16">
+    <footer
+      id="contact"
+      className="bg-brand-black text-white px-4 sm:px-6 py-16"
+    >
       <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-10">
         <div>
           <div className="flex items-center gap-3 mb-4">
-            <img src={logo} alt="El Punty" className="w-12 h-12 rounded-full" />
+            <img
+              src={logo}
+              alt="El Punty"
+              className="w-12 h-12 rounded-full"
+            />
 
             <div>
-              <div className="font-bold text-lg">EL PUNTY</div>
+              <div className="font-bold text-lg">
+                EL PUNTY
+              </div>
+
               <div className="text-[10px] tracking-[0.2em] text-white/60">
                 BARBER SHOP
               </div>
@@ -1306,12 +439,16 @@ function Footer({ t }: { t: any }) {
           </div>
 
           <p className="text-sm text-white/60 max-w-xs">
-            London's modern barbershop experience. Tradition meets technology.
+            London's modern barbershop experience.
+            Tradition meets technology.
           </p>
         </div>
 
         <div>
-          <h4 className="font-bold mb-3 text-brand-red">{t.footer.address}</h4>
+          <h4 className="font-bold mb-3 text-brand-red">
+            {t.footer.address}
+          </h4>
+
           <p className="text-sm text-white/70 leading-relaxed">
             212 Old Kent Rd
             <br />
@@ -1320,7 +457,10 @@ function Footer({ t }: { t: any }) {
         </div>
 
         <div>
-          <h4 className="font-bold mb-3 text-brand-red">{t.footer.hours}</h4>
+          <h4 className="font-bold mb-3 text-brand-red">
+            {t.footer.hours}
+          </h4>
+
           <p className="text-sm text-white/70 leading-relaxed">
             {t.footer.mon}
             <br />
@@ -1330,7 +470,8 @@ function Footer({ t }: { t: any }) {
       </div>
 
       <div className="max-w-7xl mx-auto mt-12 pt-6 border-t border-white/10 text-xs text-white/50 text-center">
-        ©️ {new Date().getFullYear()} El Punty Barber Shop. {t.footer.rights}
+        © {new Date().getFullYear()} El Punty Barber Shop.{" "}
+        {t.footer.rights}
       </div>
     </footer>
   );
@@ -1349,7 +490,11 @@ function SectionTitle({
         {title}
       </h2>
 
-      {subtitle && <p className="text-muted-foreground text-lg">{subtitle}</p>}
+      {subtitle && (
+        <p className="text-muted-foreground text-lg">
+          {subtitle}
+        </p>
+      )}
     </div>
   );
 }
