@@ -1,15 +1,11 @@
 {
+  "outputDirectory": "dist/client",
   "buildCommand": "npm run build",
   "installCommand": "npm install",
-  "functions": {
-    "api/index.js": {
-      "runtime": "nodejs20.x"
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/"
+      "destination": "/index.html"
     }
   ]
 }
