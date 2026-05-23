@@ -1,8 +1,5 @@
 {
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ]
+  "outputDirectory": "dist/client",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install"
 }
