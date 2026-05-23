@@ -102,9 +102,15 @@ function Index() {
       <Booking t={t} lang={lang} />
 
       <Walkin t={t} />
+<<<<<<< HEAD
 
       <Reviews lang={lang} />
 
+=======
+      
+      <Reviews lang={lang} />
+      
+>>>>>>> c987d3f (reviews working on stable deploy)
       <Benefits t={t} />
 
       <Reminders lang={lang} />
