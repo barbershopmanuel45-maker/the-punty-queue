@@ -78,13 +78,13 @@ export default function Reviews({ lang = "es" }: { lang?: Lang }) {
           <p className="mt-4 text-gray-500">{subtitle}</p>
         </div>
 
-        {loading && (
+        {loading && reviews.length === 0 && (
           <p className="text-center text-gray-500">
             {lang === "es" ? "Cargando reseñas..." : "Loading reviews..."}
           </p>
         )}
 
-        {!loading && (
+        {reviews.length > 0 && (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {reviews.map((review) => (
               <div
