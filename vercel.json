@@ -1,9 +1,5 @@
 {
-  "version": 2,
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
+  "outputDirectory": "dist/client",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install"
 }
