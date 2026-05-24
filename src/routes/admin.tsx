@@ -7,8 +7,21 @@ export const Route = createFileRoute("/admin")({
   component: AdminPage,
 });
 
+type AppointmentRow = {
+  id: string;
+  customer_name: string | null;
+  phone: string | null;
+  email: string | null;
+  service_name: string | null;
+  appointment_date: string | null;
+  appointment_time: string | null;
+  barber_name: string | null;
+  status: string | null;
+  created_at: string | null;
+};
+
 type Booking = {
-  id?: string;
+  id: string;
   name: string;
   phone: string;
   email: string;
@@ -16,8 +29,8 @@ type Booking = {
   barber: string;
   date: string;
   time: string;
-  status?: string;
-  created_at?: string;
+  status: string;
+  created_at?: string | null;
 };
 
 type ProfileRow = {
@@ -48,7 +61,7 @@ function AdminPage() {
 
       const { data: profileData, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, role, email")
         .eq("id", session.user.id)
         .single();
 
@@ -69,7 +82,6 @@ function AdminPage() {
 
       setProfile(profileData);
       setAuthChecked(true);
-
       await loadBookings();
     }
 
@@ -81,25 +93,34 @@ function AdminPage() {
 
     const { data, error } = await supabase
       .from("appointments")
-      .select("*")
-      .order("created_at", { ascending: false });
+      .select(
+        "id, customer_name, phone, email, service_name, appointment_date, appointment_time, barber_name, status, created_at",
+      )
+      .order("appointment_date", { ascending: true });
 
-    if (!error && data) {
-      setBookings(
-        data.map((item) => ({
-          id: item.id,
-          name: item.customer_name || "",
-          phone: item.phone || "",
-          email: item.email || "",
-          service: item.service_name || "",
-          barber: item.barber || item.barber_name || "",
-          date: item.date || item.appointment_date || "",
-          time: item.time || item.appointment_time || "",
-          status: item.status || "confirmed",
-          created_at: item.created_at,
-        })),
-      );
+    if (error) {
+      console.error("Error loading appointments:", error);
+      setBookings([]);
+      setLoading(false);
+      return;
     }
+
+    const rows = (data || []) as AppointmentRow[];
+
+    setBookings(
+      rows.map((item) => ({
+        id: item.id,
+        name: item.customer_name || "",
+        phone: item.phone || "",
+        email: item.email || "",
+        service: item.service_name || "",
+        barber: item.barber_name || "",
+        date: item.appointment_date || "",
+        time: item.appointment_time || "",
+        status: item.status || "confirmed",
+        created_at: item.created_at,
+      })),
+    );
 
     setLoading(false);
   }
@@ -109,25 +130,34 @@ function AdminPage() {
     navigate({ to: "/login" });
   }
 
-  async function deleteBooking(id?: string) {
-    if (!id) return;
-
+  async function deleteBooking(id: string) {
     const ok = confirm("¿Eliminar esta reserva?");
     if (!ok) return;
 
-    await supabase.from("appointments").delete().eq("id", id);
+    const { error } = await supabase.from("appointments").delete().eq("id", id);
+
+    if (error) {
+      console.error("Error deleting appointment:", error);
+      alert("No se pudo eliminar la reserva.");
+      return;
+    }
+
     await loadBookings();
   }
 
   const filteredBookings = useMemo(() => {
-    const q = query.toLowerCase();
+    const q = query.toLowerCase().trim();
+
+    if (!q) return bookings;
 
     return bookings.filter((booking) => {
       return (
-        booking.name?.toLowerCase().includes(q) ||
-        booking.phone?.toLowerCase().includes(q) ||
-        booking.email?.toLowerCase().includes(q) ||
-        booking.service?.toLowerCase().includes(q)
+        booking.name.toLowerCase().includes(q) ||
+        booking.phone.toLowerCase().includes(q) ||
+        booking.email.toLowerCase().includes(q) ||
+        booking.service.toLowerCase().includes(q) ||
+        booking.barber.toLowerCase().includes(q) ||
+        booking.status.toLowerCase().includes(q)
       );
     });
   }, [bookings, query]);
@@ -236,7 +266,7 @@ function AdminPage() {
 
                       <td className="p-4">
                         <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
-                          {booking.status || "confirmed"}
+                          {booking.status}
                         </span>
                       </td>
 
