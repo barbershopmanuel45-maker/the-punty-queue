@@ -1,6 +1,3 @@
-// Data layer: Supabase is source of truth.
-// localStorage is ONLY fallback when Supabase is unreachable.
-
 import { supabase } from "./supabase";
 import { services } from "./i18n";
 
@@ -251,10 +248,32 @@ export async function createBooking(b: BookingUI): Promise<BookingUI> {
     console.error("[supabase] createBooking failed", error, row);
     throw error;
   }
+const savedBooking = rowToBooking(data);
 
-  return rowToBooking(data);
+ try {
+  const reminderResult = await createReminderLog({
+    id: crypto.randomUUID(),
+    appointment_id: String(data.id),
+    customer_name: savedBooking.name || "",
+    email: savedBooking.email || "",
+    phone: savedBooking.phone || "",
+    appointment_date: savedBooking.date || null,
+    appointment_time: savedBooking.time || null,
+    reminder_time: new Date().toISOString(),
+    channel: "email",
+    status: "sent",
+    message: "Reserva confirmada enviada",
+    created_at: new Date().toISOString(),
+    sent_at: new Date().toISOString(),
+    business_id: savedBooking.business_id || null,
+  });
+
+  console.log("REMINDER CREATED:", reminderResult);
+} catch (err) {
+  console.error("REMINDER INSERT ERROR:", err);
 }
-
+  return savedBooking;
+}
 export async function listBookings(
   businessId?: string | null,
 ): Promise<{ data: BookingUI[]; source: Source }> {
@@ -600,26 +619,26 @@ export async function listReminders(
 export async function createReminderLog(
   reminder: ReminderUI,
 ): Promise<ReminderUI> {
-  const biz = reminder.business_id || getCurrentBusinessId();
+  const nowIso = new Date().toISOString();
 
   const { data, error } = await supabase
     .from("reminders")
-    .insert([
-      {
-        appointment_id: reminder.appointment_id || null,
-        customer_name: reminder.customer_name,
-        email: reminder.email || "",
-        phone: reminder.phone || "",
-        appointment_date: reminder.appointment_date || null,
-        appointment_time: reminder.appointment_time || null,
-        reminder_time: reminder.reminder_time || null,
-        channel: reminder.channel,
-        status: reminder.status,
-        message: reminder.message,
-        sent_at: reminder.sent_at || null,
-        business_id: biz,
-      },
-    ])
+    .insert({
+      id: crypto.randomUUID(),
+      appointment_id: reminder.appointment_id || null,
+      customer_name: reminder.customer_name || "",
+      email: reminder.email || "",
+      phone: reminder.phone || "",
+      appointment_date: reminder.appointment_date || null,
+      appointment_time: reminder.appointment_time || null,
+      reminder_time: reminder.reminder_time || nowIso,
+      channel: reminder.channel || "email",
+      status: reminder.status || "sent",
+      message: reminder.message || "",
+      created_at: reminder.created_at || nowIso,
+      business_id: reminder.business_id || null,
+      sent_at: reminder.sent_at || nowIso,
+    })
     .select("*")
     .single();
 
