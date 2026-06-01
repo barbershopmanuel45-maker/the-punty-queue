@@ -1,5 +1,5 @@
 {
-  "outputDirectory": "dist/client",
+  "outputDirectory": "dist",
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "rewrites": [
