@@ -1,11 +1,15 @@
 {
-  "outputDirectory": "dist",
   "buildCommand": "npm run build",
   "installCommand": "npm install",
-  "rewrites": [
+  "functions": {
+    "dist/server/server.js": {
+      "runtime": "nodejs22.x"
+    }
+  },
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "/(.*)",
+      "dest": "/dist/server/server.js"
     }
   ]
 }
