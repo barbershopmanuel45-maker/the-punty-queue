@@ -139,7 +139,7 @@ AS $$
     a.barber::text,
     a.appointment_date,
     a.appointment_time,
-    a.service_duration,
+    a.service_duration::integer,
     a.status::text,
     a.business_id::text
   FROM public.appointments a
