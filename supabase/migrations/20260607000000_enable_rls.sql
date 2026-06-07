@@ -124,8 +124,8 @@ USING (public.is_admin(auth.uid()));
 CREATE OR REPLACE FUNCTION public.get_public_booking_slots(_business_id text DEFAULT NULL)
 RETURNS TABLE (
   barber text,
-  appointment_date date,
-  appointment_time time,
+  appointment_date text,
+  appointment_time text,
   service_duration integer,
   status text,
   business_id text
@@ -137,8 +137,8 @@ SET search_path = public
 AS $$
   SELECT
     a.barber::text,
-    a.appointment_date,
-    a.appointment_time,
+    a.appointment_date::text,
+    a.appointment_time::text,
     a.service_duration::integer,
     a.status::text,
     a.business_id::text
