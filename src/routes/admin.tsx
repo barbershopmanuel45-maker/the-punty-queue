@@ -55,16 +55,20 @@ type ProfileRow = {
 };
 
 const SERVICES = [
-  { name: "Acondicionado de Barba", price: 15, duration: 20 },
-  { name: "Corte de Pelo", price: 25, duration: 30 },
-  { name: "Corte + Barba", price: 35, duration: 45 },
-  { name: "Fade", price: 30, duration: 35 },
-  { name: "Skin Fade", price: 35, duration: 40 },
-  { name: "Corte Niño", price: 18, duration: 25 },
-  { name: "Peinado / Styling", price: 20, duration: 25 },
+  { name: "Corte al ras / Buzz cut", price: 14, duration: 20 },
+  { name: "Niños / Kids", price: 16, duration: 25 },
+  { name: "Jubilados +60 / OAP", price: 10, duration: 25 },
+  { name: "Corte de pelo / Haircut", price: 20, duration: 30 },
+  { name: "Degradado / Skin fade", price: 22, duration: 35 },
+  { name: "Recorte de barba con navaja / Beard trim with razor", price: 16, duration: 25 },
+  { name: "Degradado y barba / Skin fade and beard", price: 26, duration: 45 },
+  { name: "Recorte de barba / Beard trim", price: 6, duration: 15 },
+  { name: "Depilación de cejas / Eyebrow waxing", price: 5, duration: 15 },
+  { name: "Cejas hombre / Men's eyebrows", price: 2, duration: 10 },
+  { name: "⭐ Servicio VIP completo ROYAL / ROYAL Full VIP Service", price: 36, duration: 60 },
 ];
 
-const STAFF = ["Junior", "Manuel", "Barbero", "Peluquera"];
+const STAFF = ["Junior"];
 
 function AdminPage() {
   const navigate = useNavigate();
@@ -348,7 +352,7 @@ function AdminPage() {
                   <th className="p-4 text-left">Servicio</th>
                   <th className="p-4 text-left">Precio</th>
                   <th className="p-4 text-left">Duración</th>
-                  <th className="p-4 text-left">Barbero / Peluquera</th>
+                  <th className="p-4 text-left">Barbero / Barber</th>
                   <th className="p-4 text-left">Fecha</th>
                   <th className="p-4 text-left">Hora</th>
                   <th className="p-4 text-left">Estado</th>
@@ -435,7 +439,7 @@ function AdminPage() {
               <div key={person} className="rounded-xl border bg-white p-4">
                 <h3 className="font-bold">{person}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Barbero / Peluquera
+                  Barbero / Barber
                 </p>
               </div>
             ))}
