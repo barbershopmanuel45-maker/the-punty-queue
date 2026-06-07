@@ -311,7 +311,7 @@ function AdminPage() {
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-4xl font-bold text-brand-blue">Admin Panel</h1>
-            <p className="mt-2 text-muted-foreground">El Punty Barber Shop</p>
+            <p className="mt-2 text-muted-foreground">JuniorFADEfactory · Barber Shop</p>
 
             {profile && (
               <p className="mt-2 text-sm text-muted-foreground">

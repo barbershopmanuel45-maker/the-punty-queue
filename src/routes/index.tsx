@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react";
 
-import logo from "@/assets/logo.jpeg";
+import logo from "@/assets/logo.png";
 import hero from "@/assets/hero.jpeg";
 
 import {
@@ -31,26 +31,27 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "El Punty Barber Shop — London" },
+      { title: "JuniorFADEfactory | Barber Shop London SE1" },
 
       {
         name: "description",
         content:
-          "Modern barbershop in London. Book online or join the walk-in queue. No waiting.",
+          "Professional barber shop in London. Online booking, walk-ins, skin fades, classic cuts and VIP grooming services.",
       },
 
-      { property: "og:title", content: "El Punty Barber Shop" },
+      { property: "og:title", content: "JuniorFADEfactory | Barber Shop London SE1" },
 
       {
         property: "og:description",
-        content: "Your cut, on your time. No waiting.",
+        content:
+          "Professional barber shop in London. Online booking, walk-ins, skin fades, classic cuts and VIP grooming services.",
       },
 
       { property: "og:type", content: "website" },
 
       {
         property: "og:image",
-        content: "/project-preview.jpeg",
+        content: "/project-preview.png",
       },
 
       {
@@ -60,17 +61,17 @@ export const Route = createFileRoute("/")({
 
       {
         name: "twitter:title",
-        content: "El Punty Barber Shop",
+        content: "JuniorFADEfactory | Barber Shop London SE1",
       },
 
       {
         name: "twitter:description",
-        content: "Your cut, on your time. No waiting.",
+        content: "Professional barber shop in London. Online booking, walk-ins, skin fades, classic cuts and VIP grooming services.",
       },
 
       {
         name: "twitter:image",
-        content: "/project-preview.jpeg",
+        content: "/project-preview.png",
       },
 
       {
@@ -82,7 +83,8 @@ export const Route = createFileRoute("/")({
     links: [
       {
         rel: "icon",
-        href: "/favicon.jpeg",
+        type: "image/png",
+        href: "/favicon.png",
       },
 
       {
@@ -170,13 +172,13 @@ function Header({
         >
           <img
             src={logo}
-            alt="El Punty"
-            className="w-11 h-11 rounded-full object-cover shadow-soft"
+            alt="JuniorFADEfactory"
+            className="w-11 h-11 object-contain"
           />
 
           <div className="leading-tight">
             <div className="font-bold text-brand-blue text-lg">
-              EL PUNTY
+              Junior<span className="text-brand-red">FADE</span>factory
             </div>
 
             <div className="text-[10px] tracking-[0.2em] text-brand-gray">
@@ -263,7 +265,7 @@ function Hero({ t }: { t: any }) {
       <div className="absolute inset-0">
         <img
           src={hero}
-          alt="El Punty interior"
+          alt="JuniorFADEfactory interior"
           className="w-full h-full object-cover"
         />
 
@@ -1104,8 +1106,8 @@ const isActiveBooking = (status?: string) => {
           >
             <img
               src={logo}
-              alt="El Punty"
-              className="w-20 h-20 rounded-full mx-auto mb-4 shadow-soft"
+              alt="JuniorFADEfactory"
+              className="w-20 h-20 object-contain mx-auto mb-4"
             />
 
             <div className="text-5xl mb-3">✅</div>
@@ -1294,10 +1296,12 @@ function Footer({ t }: { t: any }) {
       <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-10">
         <div>
           <div className="flex items-center gap-3 mb-4">
-            <img src={logo} alt="El Punty" className="w-12 h-12 rounded-full" />
+            <img src={logo} alt="JuniorFADEfactory" className="w-12 h-12 object-contain" />
 
             <div>
-              <div className="font-bold text-lg">EL PUNTY</div>
+              <div className="font-bold text-lg">
+                Junior<span className="text-brand-red">FADE</span>factory
+              </div>
               <div className="text-[10px] tracking-[0.2em] text-white/60">
                 BARBER SHOP
               </div>
@@ -1329,7 +1333,7 @@ function Footer({ t }: { t: any }) {
       </div>
 
       <div className="max-w-7xl mx-auto mt-12 pt-6 border-t border-white/10 text-xs text-white/50 text-center">
-        ©️ {new Date().getFullYear()} El Punty Barber Shop. {t.footer.rights}
+        ©️ {new Date().getFullYear()} JuniorFADEfactory Barber Shop. {t.footer.rights}
       </div>
     </footer>
   );

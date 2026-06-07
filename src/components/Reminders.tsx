@@ -25,7 +25,7 @@ const T = {
     min: "min",
     sentVia: "Enviado por",
     msg: (n: string, t: string) =>
-      `Hola ${n}, te recordamos tu cita en El Punty a las ${t}.`,
+      `Hola ${n}, te recordamos tu cita en JuniorFADEfactory a las ${t}.`,
     badgePending: "Pendiente",
     badgeSent: "Enviado",
     auto: "Conectado a Supabase",
@@ -44,7 +44,7 @@ const T = {
     min: "min",
     sentVia: "Sent via",
     msg: (n: string, t: string) =>
-      `Hi ${n}, this is a reminder of your appointment at El Punty at ${t}.`,
+      `Hi ${n}, this is a reminder of your appointment at JuniorFADEfactory at ${t}.`,
     badgePending: "Pending",
     badgeSent: "Sent",
     auto: "Connected to Supabase",
