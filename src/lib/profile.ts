@@ -20,6 +20,20 @@ export async function fetchProfile(): Promise<Profile | null> {
       .eq("id", user.id)
       .maybeSingle();
 
+    const { data: roleRows } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id);
+
+    const roles = (roleRows || []).map((row) => String(row.role || ""));
+    const role = roles.includes("owner")
+      ? "owner"
+      : roles.includes("admin")
+        ? "admin"
+        : roles.includes("staff")
+          ? "staff"
+          : data?.role ?? null;
+
     if (error) {
       console.warn("[profile] fetch failed", error);
       return {
@@ -34,7 +48,7 @@ export async function fetchProfile(): Promise<Profile | null> {
     return {
       id: user.id,
       full_name: data?.full_name ?? user.email ?? null,
-      role: data?.role ?? null,
+      role,
       business_id: data?.business_id ?? null,
       email: user.email ?? null,
     };

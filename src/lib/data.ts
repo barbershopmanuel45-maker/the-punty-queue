@@ -230,6 +230,33 @@ export function setCurrentBusinessId(id: string | null) {
   }
 }
 
+async function hasAuthenticatedSession(): Promise<boolean> {
+  try {
+    const { data } = await supabase.auth.getSession();
+    return Boolean(data.session?.user);
+  } catch {
+    return false;
+  }
+}
+
+function publicSlotToBooking(r: any): BookingUI {
+  return {
+    name: "",
+    phone: "",
+    email: "",
+    service: "",
+    barber: r.barber || "",
+    date: r.appointment_date || r.date || "",
+    time: String(r.appointment_time || r.time || "").slice(0, 5),
+    comments: "",
+    price: 0,
+    duration: Number(r.service_duration || r.duration) || 30,
+    createdAt: Date.now(),
+    status: cleanStatus(r.status),
+    business_id: r.business_id || null,
+  };
+}
+
 // ---------- Bookings ----------
 
 export async function createBooking(b: BookingUI): Promise<BookingUI> {
@@ -238,41 +265,19 @@ export async function createBooking(b: BookingUI): Promise<BookingUI> {
 
   if (biz) row.business_id = biz;
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("appointments")
-    .insert([row])
-    .select("*")
-    .single();
+    .insert([row]);
 
   if (error) {
     console.error("[supabase] createBooking failed", error, row);
     throw error;
   }
-const savedBooking = rowToBooking(data);
 
- try {
-  const reminderResult = await createReminderLog({
-    id: crypto.randomUUID(),
-    appointment_id: String(data.id),
-    customer_name: savedBooking.name || "",
-    email: savedBooking.email || "",
-    phone: savedBooking.phone || "",
-    appointment_date: savedBooking.date || null,
-    appointment_time: savedBooking.time || null,
-    reminder_time: new Date().toISOString(),
-    channel: "email",
-    status: "sent",
-    message: "Reserva confirmada enviada",
-    created_at: new Date().toISOString(),
-    sent_at: new Date().toISOString(),
-    business_id: savedBooking.business_id || null,
-  });
-
-  console.log("REMINDER CREATED:", reminderResult);
-} catch (err) {
-  console.error("REMINDER INSERT ERROR:", err);
-}
-  return savedBooking;
+  return {
+    ...b,
+    business_id: biz || b.business_id || null,
+  };
 }
 export async function listBookings(
   businessId?: string | null,
@@ -280,6 +285,19 @@ export async function listBookings(
   const biz = businessId !== undefined ? businessId : getCurrentBusinessId();
 
   try {
+    if (!(await hasAuthenticatedSession())) {
+      const { data, error } = await supabase.rpc("get_public_booking_slots", {
+        _business_id: biz || null,
+      });
+
+      if (error) throw error;
+
+      return {
+        data: (data || []).map(publicSlotToBooking),
+        source: "supabase",
+      };
+    }
+
     let q = supabase
       .from("appointments")
       .select("*")
@@ -387,15 +405,9 @@ export async function createWalkin(name: string, phone = ""): Promise<WalkinUI> 
   const biz = getCurrentBusinessId();
 
   try {
-    let cur = supabase.from("walkins").select("id").eq("status", "waiting");
-
-    if (biz) cur = cur.eq("business_id", biz);
-
-    const { data: current, error: currentError } = await cur;
-
-    if (currentError) throw currentError;
-
-    const estimatedWait = ((current?.length || 0) + 1) * 15;
+    const localQueue = lsGet<WalkinUI>(WK);
+    const estimatedWait =
+      (localQueue.filter((w) => (w.status || "waiting") === "waiting").length + 1) * 15;
 
     const insertRow: Record<string, any> = {
       customer_name: name,
@@ -406,15 +418,22 @@ export async function createWalkin(name: string, phone = ""): Promise<WalkinUI> 
 
     if (biz) insertRow.business_id = biz;
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("walkins")
-      .insert([insertRow])
-      .select("*")
-      .single();
+      .insert([insertRow]);
 
     if (error) throw error;
 
-    return rowToWalkin(data);
+    return {
+      id: Date.now(),
+      name,
+      phone,
+      createdAt: Date.now(),
+      attended: false,
+      status: "waiting",
+      estimated_wait_minutes: estimatedWait,
+      business_id: biz || null,
+    };
   } catch (e) {
     console.warn("[supabase] createWalkin failed, fallback to localStorage", e);
 

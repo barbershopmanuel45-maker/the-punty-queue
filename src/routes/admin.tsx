@@ -97,13 +97,23 @@ function AdminPage() {
         .eq("id", session.user.id)
         .single();
 
-      if (error || !profileData) {
+      const { data: roleRows, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id);
+
+      if (rolesError || error || !profileData) {
         await supabase.auth.signOut();
         navigate({ to: "/login" });
         return;
       }
 
-      const role = String(profileData.role || "").toLowerCase();
+      const roles = (roleRows || []).map((item) => String(item.role || "").toLowerCase());
+      const role = roles.includes("owner")
+        ? "owner"
+        : roles.includes("admin")
+          ? "admin"
+          : String(profileData.role || "").toLowerCase();
 
       if (role !== "admin" && role !== "owner") {
         await supabase.auth.signOut();
@@ -111,7 +121,7 @@ function AdminPage() {
         return;
       }
 
-      setProfile(profileData);
+      setProfile({ ...profileData, role });
       setAuthChecked(true);
 
       await Promise.all([loadAppointments(), loadReviews(), loadWalkins()]);
