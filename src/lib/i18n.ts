@@ -189,23 +189,20 @@ export const translations = {
 };
 
 export const services = [
-  { id: "beard_conditioning", icon: "🧔", category: "barber", name_es: "Acondicionado de Barba", name_en: "Beard Conditioning", price: 15, duration: 20 },
-  { id: "eyebrow_tinting", icon: "🎨", category: "hair", name_es: "Tinte de Cejas", name_en: "Eyebrow Tinting", price: 10, duration: 20 },
-  { id: "hair_coloring", icon: "🎭", category: "hair", name_es: "Coloración de Cabello", name_en: "Hair Coloring", price: 45, duration: 60 },
-  { id: "hair_extensions", icon: "💇", category: "hair", name_es: "Extensiones de Cabello", name_en: "Hair Extensions", price: 80, duration: 60 },
-  { id: "hair_lineup", icon: "📐", category: "barber", name_es: "Perfilado de Cabello", name_en: "Hair Line-Up", price: 12, duration: 20 },
-  { id: "shaved_head", icon: "🪒", category: "barber", name_es: "Cabeza Rapada", name_en: "Shaved Head", price: 20, duration: 30 },
-  { id: "long_haircut", icon: "✂️", category: "hair", name_es: "Corte de Cabello Largo", name_en: "Long Haircut", price: 25, duration: 45 },
-  { id: "scissor_cut", icon: "💈", category: "barber", name_es: "Corte con Tijera", name_en: "Scissor Cut", price: 20, duration: 30 },
-  { id: "shave", icon: "🪒", category: "barber", name_es: "Afeitado", name_en: "Shave", price: 15, duration: 25 },
-  { id: "kids_haircut", icon: "🧒", category: "barber", name_es: "Corte de Pelo para niños", name_en: "Kids Haircut", price: 15, duration: 25 },
-  { id: "ladies_haircut", icon: "👩", category: "hair", name_es: "Corte de cabello y peinado para señoras", name_en: "Ladies Haircut & Styling", price: 35, duration: 45 },
-  { id: "keratin_botox", icon: "✨", category: "hair", name_es: "Keratina Botox", name_en: "Keratin Botox", price: 80, duration: 60 },
-  { id: "amino_acid", icon: "💧", category: "hair", name_es: "Lluvia de aminoácidos", name_en: "Amino Acid Treatment", price: 45, duration: 45 },
-  { id: "wash_straighten", icon: "🧴", category: "hair", name_es: "Lavado y planchado del cabello", name_en: "Hair Wash & Straighten", price: 35, duration: 45 },
+  { id: "buzz_cut", icon: "🪒", category: "barber", name_es: "Corte al ras", name_en: "Buzz cut", price: 14, duration: 20 },
+  { id: "kids", icon: "🧒", category: "barber", name_es: "Niños", name_en: "Kids", price: 16, duration: 25 },
+  { id: "oap", icon: "👴", category: "barber", name_es: "Jubilados mayores de 60", name_en: "OAP / Over 60s", price: 10, duration: 25 },
+  { id: "haircut", icon: "✂️", category: "barber", name_es: "Corte de pelo", name_en: "Haircut", price: 20, duration: 30 },
+  { id: "skin_fade", icon: "💈", category: "barber", name_es: "Degradado", name_en: "Skin fade", price: 22, duration: 35 },
+  { id: "beard_razor", icon: "🪒", category: "barber", name_es: "Recorte de barba con navaja", name_en: "Beard trim with razor", price: 16, duration: 25 },
+  { id: "skin_fade_beard", icon: "🧔", category: "barber", name_es: "Degradado y barba", name_en: "Skin fade and beard", price: 26, duration: 45 },
+  { id: "beard_trim", icon: "🧔", category: "barber", name_es: "Recorte de barba", name_en: "Beard trim", price: 6, duration: 15 },
+  { id: "eyebrow_waxing", icon: "🎨", category: "barber", name_es: "Depilación de cejas", name_en: "Eyebrow waxing", price: 5, duration: 15 },
+  { id: "mens_eyebrows", icon: "👁️", category: "barber", name_es: "Cejas hombre", name_en: "Men's eyebrows", price: 2, duration: 10 },
+  { id: "royal_vip", icon: "⭐", category: "barber", name_es: "Servicio VIP completo ROYAL", name_en: "ROYAL Full VIP Service", price: 36, duration: 60 },
 ];
 
-export const barberProfessionals = ["Junior", "Marvin", "Noel", "Manuel"];
-export const hairProfessionals = ["Berjania"];
+export const barberProfessionals = ["Junior"];
+export const hairProfessionals: string[] = [];
 
-export const barbers = [...barberProfessionals, ...hairProfessionals];
+export const barbers = ["Junior"];
