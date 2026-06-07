@@ -233,11 +233,8 @@ export default function Reminders({ lang }: { lang: Lang }) {
     setJobRunning(false);
   };
 
-  // Exposed for internal testing (console): window.__runReminderJob()
-  if (typeof window !== "undefined") {
-    (window as unknown as { __runReminderJob?: () => Promise<void> }).__runReminderJob =
-      runReminderJob;
-  }
+  // Note: Do not expose runReminderJob on window. Server-side role checks must
+  // gate any bulk email actions (client-side isAdmin alone is not sufficient).
 
   const list = tab === "pending" ? pendingBookings : sentReminders;
 

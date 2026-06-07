@@ -19,7 +19,6 @@ import {
 } from "@/lib/i18n";
 
 import PuntyAssistant from "@/components/PuntyAssistant";
-import Reminders from "@/components/Reminders";
 
 import {
   createBooking,
@@ -141,7 +140,7 @@ function Index() {
 
       <Benefits t={t} />
 
-      <Reminders lang={lang} />
+
 
       <Footer t={t} />
 
