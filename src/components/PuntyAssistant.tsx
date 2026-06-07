@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import logo from "@/assets/logo.jpeg";
+import logo from "@/assets/logo.png";
 import {
   services,
   barberProfessionals,
@@ -32,10 +32,10 @@ type Step =
 
 const T = {
   es: {
-    title: "Punty Assistant",
+    title: "JuniorFADE Assistant",
     online: "En línea",
     placeholder: "Escribe un mensaje...",
-    initial: "Hola, soy el asistente de El Punty. ¿En qué puedo ayudarte?",
+    initial: "Hola, soy el asistente de JuniorFADEfactory. ¿En qué puedo ayudarte?",
     quick: ["Reservar", "Cancelar", "Walk-in"],
     menu: "Puedo ayudarte con: reservar, cancelar o entrar en walk-in.",
     askName: "Perfecto. ¿Cuál es tu nombre?",
@@ -49,7 +49,7 @@ const T = {
     confirm:
       "✅ ¡Reserva confirmada!\n\n{n} — {s}\n📅 {d} a las {t}\n💈 Profesional: {b}\n📧 {e}\n💷 £{p}",
     cancelInfo:
-      "Para cancelar o modificar una reserva, contacta directamente con El Punty Barber Shop.",
+      "Para cancelar o modificar una reserva, contacta directamente con JuniorFADEfactory.",
     walkinAsk: "¿Tu nombre para la cola?",
     walkinJoined: "✅ ¡Estás en la cola! Espera estimada ~{w} min.",
     servicesList: "Nuestros servicios:\n\n{list}",
@@ -67,10 +67,10 @@ const T = {
   },
 
   en: {
-    title: "Punty Assistant",
+    title: "JuniorFADE Assistant",
     online: "Online",
     placeholder: "Type a message...",
-    initial: "Hi, I'm El Punty's assistant. How can I help you?",
+    initial: "Hi, I'm the JuniorFADEfactory assistant. How can I help you?",
     quick: ["Book", "Cancel", "Walk-in"],
     menu: "I can help with: book, cancel or join the walk-in queue.",
     askName: "Great. What's your name?",
@@ -85,7 +85,7 @@ const T = {
     confirm:
       "✅ Booking confirmed!\n\n{n} — {s}\n📅 {d} at {t}\n💈 Professional: {b}\n📧 {e}\n💷 £{p}",
     cancelInfo:
-      "To cancel or modify a booking, contact El Punty Barber Shop directly.",
+      "To cancel or modify a booking, contact JuniorFADEfactory directly.",
     walkinAsk: "Your name for the queue?",
     walkinJoined: "✅ You're in the queue! Estimated wait ~{w} min.",
     servicesList: "Our services:\n\n{list}",
@@ -601,7 +601,7 @@ export default function PuntyAssistant({
   barber: finalProfessional,
   date: d.date,
   time: d.time,
-  comments: "Reserva creada desde Punty Assistant",
+  comments: "Reserva creada desde JuniorFADE Assistant",
   price: d.service.price,
   duration: d.service.duration,
   createdAt: Date.now(),
@@ -700,7 +700,7 @@ export default function PuntyAssistant({
       <button
         onClick={() => setOpen((o) => !o)}
         className="fixed bottom-5 right-5 z-50 w-16 h-16 rounded-full shadow-soft bg-gradient-brand flex items-center justify-center hover:scale-110 transition group"
-        aria-label="Punty Assistant"
+        aria-label="JuniorFADE Assistant"
       >
         {open ? (
           <span className="text-white text-2xl">×</span>

@@ -30,39 +30,44 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
 
-      { title: "El Punty Barber Shop — London" },
+      { title: "JuniorFADEfactory | Barber Shop London SE1" },
 
       {
         name: "description",
-        content: "Reserva tu corte online o únete a la cola walk-in en Londres.",
+        content:
+          "Barbería profesional en Londres. Reserva online, walk-ins, degradados, cortes clásicos y servicio VIP.",
       },
 
-      { name: "author", content: "El Punty Barber Shop" },
+      { name: "author", content: "JuniorFADEfactory" },
 
-      { property: "og:title", content: "El Punty Barber Shop" },
+      { property: "og:title", content: "JuniorFADEfactory | Barber Shop London SE1" },
       {
         property: "og:description",
-        content: "Your cut, on your time. No waiting.",
+        content:
+          "Professional barber shop in London. Online booking, walk-ins, skin fades, classic cuts and VIP grooming services.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://elpunty-prime.lovable.app/" },
+      { property: "og:url", content: "https://juniorfadefactory.lovable.app/" },
       {
         property: "og:image",
-        content: "https://elpunty-prime.lovable.app/project-preview.jpeg?v=99",
+        content: "https://juniorfadefactory.lovable.app/project-preview.png",
       },
 
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "El Punty Barber Shop" },
+      { name: "twitter:title", content: "JuniorFADEfactory | Barber Shop London SE1" },
       {
         name: "twitter:description",
-        content: "Your cut, on your time. No waiting.",
+        content:
+          "Professional barber shop in London. Online booking, walk-ins, skin fades, classic cuts and VIP grooming services.",
       },
       {
         name: "twitter:image",
-        content: "https://elpunty-prime.lovable.app/project-preview.jpeg?v=99",
+        content: "https://juniorfadefactory.lovable.app/project-preview.png",
       },
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
     ],
     links: [
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
       {
         rel: "stylesheet",
         href: appCss,

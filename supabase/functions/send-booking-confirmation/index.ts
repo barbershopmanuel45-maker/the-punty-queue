@@ -64,7 +64,7 @@ serve(async (req) => {
     const html = `
       <div style="font-family:Arial,sans-serif;padding:24px;background:#f5f5f5">
         <div style="max-width:600px;margin:auto;background:white;padding:32px;border-radius:12px">
-          <h1 style="color:#1d4ed8;">El Punty Barber Shop</h1>
+          <h1 style="color:#1d4ed8;">JuniorFADEfactory · Barber Shop</h1>
 
           <h2>✅ Reserva confirmada</h2>
 
@@ -82,7 +82,7 @@ serve(async (req) => {
 
           <hr />
 
-          <p>Te esperamos en El Punty Barber Shop.</p>
+          <p>Te esperamos en JuniorFADEfactory · Barber Shop.</p>
         </div>
       </div>
     `;
@@ -94,9 +94,9 @@ serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "El Punty Barber Shop <reservas@avatarapp.dev>",
+        from: "JuniorFADEfactory <reservas@avatarapp.dev>",
         to,
-        subject: "Reserva confirmada — El Punty Barber Shop",
+        subject: "Reserva confirmada — JuniorFADEfactory · Barber Shop",
         html,
       }),
     });

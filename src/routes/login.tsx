@@ -46,7 +46,7 @@ function LoginPage() {
         </h1>
 
         <p className="mb-6 text-center text-muted-foreground">
-          El Punty Barber Shop
+          JuniorFADEfactory · Barber Shop
         </p>
 
         <div className="space-y-4">
