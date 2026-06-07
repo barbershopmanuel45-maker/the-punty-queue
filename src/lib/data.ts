@@ -405,15 +405,9 @@ export async function createWalkin(name: string, phone = ""): Promise<WalkinUI> 
   const biz = getCurrentBusinessId();
 
   try {
-    let cur = supabase.from("walkins").select("id").eq("status", "waiting");
-
-    if (biz) cur = cur.eq("business_id", biz);
-
-    const { data: current, error: currentError } = await cur;
-
-    if (currentError) throw currentError;
-
-    const estimatedWait = ((current?.length || 0) + 1) * 15;
+    const localQueue = lsGet<WalkinUI>(WK);
+    const estimatedWait =
+      (localQueue.filter((w) => (w.status || "waiting") === "waiting").length + 1) * 15;
 
     const insertRow: Record<string, any> = {
       customer_name: name,
@@ -424,15 +418,22 @@ export async function createWalkin(name: string, phone = ""): Promise<WalkinUI> 
 
     if (biz) insertRow.business_id = biz;
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("walkins")
-      .insert([insertRow])
-      .select("*")
-      .single();
+      .insert([insertRow]);
 
     if (error) throw error;
 
-    return rowToWalkin(data);
+    return {
+      id: Date.now(),
+      name,
+      phone,
+      createdAt: Date.now(),
+      attended: false,
+      status: "waiting",
+      estimated_wait_minutes: estimatedWait,
+      business_id: biz || null,
+    };
   } catch (e) {
     console.warn("[supabase] createWalkin failed, fallback to localStorage", e);
 
