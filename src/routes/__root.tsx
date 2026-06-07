@@ -64,7 +64,6 @@ export const Route = createRootRoute({
         name: "twitter:image",
         content: "https://juniorfadefactory.lovable.app/project-preview.png",
       },
-      { rel: "icon", type: "image/png", href: "/favicon.png" },
     ],
     links: [
       { rel: "icon", type: "image/png", href: "/favicon.png" },
