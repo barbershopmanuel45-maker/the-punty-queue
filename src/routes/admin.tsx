@@ -352,7 +352,7 @@ function AdminPage() {
                   <th className="p-4 text-left">Servicio</th>
                   <th className="p-4 text-left">Precio</th>
                   <th className="p-4 text-left">Duración</th>
-                  <th className="p-4 text-left">Barbero / Peluquera</th>
+                  <th className="p-4 text-left">Barbero / Barber</th>
                   <th className="p-4 text-left">Fecha</th>
                   <th className="p-4 text-left">Hora</th>
                   <th className="p-4 text-left">Estado</th>
@@ -439,7 +439,7 @@ function AdminPage() {
               <div key={person} className="rounded-xl border bg-white p-4">
                 <h3 className="font-bold">{person}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Barbero / Peluquera
+                  Barbero / Barber
                 </p>
               </div>
             ))}
