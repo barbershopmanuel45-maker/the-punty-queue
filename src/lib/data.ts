@@ -59,28 +59,28 @@ const BIZ_KEY = "elpunty_business_id";
 export type Source = "supabase" | "localStorage";
 
 const legacyServices: Record<string, string> = {
-  haircut: "scissor_cut",
-  "Corte de pelo": "scissor_cut",
-  "Corte de Pelo": "scissor_cut",
-  "Corte con Tijera": "scissor_cut",
+  haircut: "haircut",
+  "Corte de pelo": "haircut",
+  "Corte de Pelo": "haircut",
+  "Corte con Tijera": "haircut",
+  "Corte de Cabello Largo": "haircut",
 
-  beard: "beard_conditioning",
-  "Arreglo de barba": "beard_conditioning",
-  "Acondicionado de Barba": "beard_conditioning",
+  beard: "beard_trim",
+  "Arreglo de barba": "beard_trim",
+  "Acondicionado de Barba": "beard_trim",
 
-  shave: "shave",
-  "Afeitado clásico": "shave",
-  Afeitado: "shave",
+  shave: "beard_razor",
+  "Afeitado clásico": "beard_razor",
+  Afeitado: "beard_razor",
 
-  color: "hair_coloring",
-  "Tinte / Color": "hair_coloring",
-  "Coloración de Cabello": "hair_coloring",
+  "Cabeza Rapada": "buzz_cut",
+  "Shaved Head": "buzz_cut",
 
-  "Extensiones de Cabello": "hair_extensions",
-  "Corte de cabello y peinado para señoras": "ladies_haircut",
-  "Keratina Botox": "keratin_botox",
-  "Lluvia de aminoácidos": "amino_acid",
-  "Lavado y planchado del cabello": "wash_straighten",
+  "Corte de Pelo para niños": "kids",
+  "Kids Haircut": "kids",
+
+  "Perfilado de Cabello": "haircut",
+  "Hair Line-Up": "haircut",
 };
 
 function cleanStatus(status: any): BookingStatus {
