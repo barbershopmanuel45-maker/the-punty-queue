@@ -226,12 +226,33 @@ function AdminPage() {
     await loadAppointments();
   }
 
+  const sortedAppointments = useMemo(() => {
+    return [...appointments].sort((a, b) => {
+      const dateA = getDate(a);
+      const dateB = getDate(b);
+      const timeA = getTime(a);
+      const timeB = getTime(b);
+      const aValid = dateA && dateA !== "—";
+      const bValid = dateB && dateB !== "—";
+
+      if (!aValid && !bValid) return 0;
+      if (!aValid) return 1;
+      if (!bValid) return -1;
+
+      if (dateA !== dateB) return dateA.localeCompare(dateB);
+      if (timeA === "—" && timeB === "—") return 0;
+      if (timeA === "—") return 1;
+      if (timeB === "—") return -1;
+      return timeA.localeCompare(timeB);
+    });
+  }, [appointments]);
+
   const filteredAppointments = useMemo(() => {
     const q = query.trim().toLowerCase();
 
-    if (!q) return appointments;
+    if (!q) return sortedAppointments;
 
-    return appointments.filter((item) => {
+    return sortedAppointments.filter((item) => {
       const customer = item.customer_name || item.name || "";
       const service = item.service_name || item.service || "";
       const phone = item.phone || "";
@@ -246,7 +267,31 @@ function AdminPage() {
         status.toLowerCase().includes(q)
       );
     });
-  }, [appointments, query]);
+  }, [sortedAppointments, query]);
+
+  const { upcomingAppointments, pastAppointments } = useMemo(() => {
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+    const upcoming: AppointmentRow[] = [];
+    const past: AppointmentRow[] = [];
+
+    for (const item of filteredAppointments) {
+      const dateStr = getDate(item);
+      if (!dateStr || dateStr === "—") {
+        upcoming.push(item);
+        continue;
+      }
+
+      if (dateStr >= todayStr) {
+        upcoming.push(item);
+      } else {
+        past.push(item);
+      }
+    }
+
+    return { upcomingAppointments: upcoming, pastAppointments: past };
+  }, [filteredAppointments]);
 
   function getCustomerName(item: AppointmentRow) {
     return item.customer_name || item.name || "Cliente";
