@@ -226,12 +226,33 @@ function AdminPage() {
     await loadAppointments();
   }
 
+  const sortedAppointments = useMemo(() => {
+    return [...appointments].sort((a, b) => {
+      const dateA = getDate(a);
+      const dateB = getDate(b);
+      const timeA = getTime(a);
+      const timeB = getTime(b);
+      const aValid = dateA && dateA !== "—";
+      const bValid = dateB && dateB !== "—";
+
+      if (!aValid && !bValid) return 0;
+      if (!aValid) return 1;
+      if (!bValid) return -1;
+
+      if (dateA !== dateB) return dateA.localeCompare(dateB);
+      if (timeA === "—" && timeB === "—") return 0;
+      if (timeA === "—") return 1;
+      if (timeB === "—") return -1;
+      return timeA.localeCompare(timeB);
+    });
+  }, [appointments]);
+
   const filteredAppointments = useMemo(() => {
     const q = query.trim().toLowerCase();
 
-    if (!q) return appointments;
+    if (!q) return sortedAppointments;
 
-    return appointments.filter((item) => {
+    return sortedAppointments.filter((item) => {
       const customer = item.customer_name || item.name || "";
       const service = item.service_name || item.service || "";
       const phone = item.phone || "";
@@ -246,7 +267,31 @@ function AdminPage() {
         status.toLowerCase().includes(q)
       );
     });
-  }, [appointments, query]);
+  }, [sortedAppointments, query]);
+
+  const { upcomingAppointments, pastAppointments } = useMemo(() => {
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+    const upcoming: AppointmentRow[] = [];
+    const past: AppointmentRow[] = [];
+
+    for (const item of filteredAppointments) {
+      const dateStr = getDate(item);
+      if (!dateStr || dateStr === "—") {
+        upcoming.push(item);
+        continue;
+      }
+
+      if (dateStr >= todayStr) {
+        upcoming.push(item);
+      } else {
+        past.push(item);
+      }
+    }
+
+    return { upcomingAppointments: upcoming, pastAppointments: past };
+  }, [filteredAppointments]);
 
   function getCustomerName(item: AppointmentRow) {
     return item.customer_name || item.name || "Cliente";
@@ -305,6 +350,86 @@ function AdminPage() {
     );
   }
 
+  function renderAppointmentsTable(
+    items: AppointmentRow[],
+    title: string,
+    emptyMessage: string
+  ) {
+    return (
+      <div className="mb-10 overflow-hidden rounded-2xl border bg-card shadow-sm">
+        <div className="border-b bg-secondary p-4">
+          <h2 className="text-xl font-bold text-brand-blue">{title}</h2>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-secondary">
+              <tr>
+                <th className="p-4 text-left">Cliente</th>
+                <th className="p-4 text-left">Teléfono</th>
+                <th className="p-4 text-left">Email</th>
+                <th className="p-4 text-left">Servicio</th>
+                <th className="p-4 text-left">Precio</th>
+                <th className="p-4 text-left">Duración</th>
+                <th className="p-4 text-left">Barbero / Barber</th>
+                <th className="p-4 text-left">Fecha</th>
+                <th className="p-4 text-left">Hora</th>
+                <th className="p-4 text-left">Estado</th>
+                <th className="p-4 text-right">Acción</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={11} className="p-10 text-center">
+                    Cargando reservas...
+                  </td>
+                </tr>
+              ) : items.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={11}
+                    className="p-10 text-center text-muted-foreground"
+                  >
+                    {emptyMessage}
+                  </td>
+                </tr>
+              ) : (
+                items.map((item) => (
+                  <tr key={`${item.source}-${item.id}`} className="border-t">
+                    <td className="p-4 font-semibold">{getCustomerName(item)}</td>
+                    <td className="p-4">{item.phone || "—"}</td>
+                    <td className="p-4">{item.email || "—"}</td>
+                    <td className="p-4">{getServiceName(item)}</td>
+                    <td className="p-4">{getServicePrice(item)}</td>
+                    <td className="p-4">{getServiceDuration(item)}</td>
+                    <td className="p-4">{item.barber || "—"}</td>
+                    <td className="p-4">{getDate(item)}</td>
+                    <td className="p-4">{getTime(item)}</td>
+                    <td className="p-4">
+                      <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
+                        {item.status || "confirmed"}
+                      </span>
+                    </td>
+                    <td className="p-4 text-right">
+                      <button
+                        onClick={() => deleteAppointment(item)}
+                        className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+                      >
+                        Eliminar
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="mx-auto max-w-7xl">
@@ -341,73 +466,17 @@ function AdminPage() {
           />
         </div>
 
-        <div className="mb-10 overflow-hidden rounded-2xl border bg-card shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-secondary">
-                <tr>
-                  <th className="p-4 text-left">Cliente</th>
-                  <th className="p-4 text-left">Teléfono</th>
-                  <th className="p-4 text-left">Email</th>
-                  <th className="p-4 text-left">Servicio</th>
-                  <th className="p-4 text-left">Precio</th>
-                  <th className="p-4 text-left">Duración</th>
-                  <th className="p-4 text-left">Barbero / Barber</th>
-                  <th className="p-4 text-left">Fecha</th>
-                  <th className="p-4 text-left">Hora</th>
-                  <th className="p-4 text-left">Estado</th>
-                  <th className="p-4 text-right">Acción</th>
-                </tr>
-              </thead>
+        {renderAppointmentsTable(
+          upcomingAppointments,
+          "Próximas reservas / Upcoming bookings",
+          "No hay próximas reservas."
+        )}
 
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan={11} className="p-10 text-center">
-                      Cargando reservas...
-                    </td>
-                  </tr>
-                ) : filteredAppointments.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={11}
-                      className="p-10 text-center text-muted-foreground"
-                    >
-                      No hay reservas.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredAppointments.map((item) => (
-                    <tr key={`${item.source}-${item.id}`} className="border-t">
-                      <td className="p-4 font-semibold">{getCustomerName(item)}</td>
-                      <td className="p-4">{item.phone || "—"}</td>
-                      <td className="p-4">{item.email || "—"}</td>
-                      <td className="p-4">{getServiceName(item)}</td>
-                      <td className="p-4">{getServicePrice(item)}</td>
-                      <td className="p-4">{getServiceDuration(item)}</td>
-                      <td className="p-4">{item.barber || "—"}</td>
-                      <td className="p-4">{getDate(item)}</td>
-                      <td className="p-4">{getTime(item)}</td>
-                      <td className="p-4">
-                        <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
-                          {item.status || "confirmed"}
-                        </span>
-                      </td>
-                      <td className="p-4 text-right">
-                        <button
-                          onClick={() => deleteAppointment(item)}
-                          className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
-                        >
-                          Eliminar
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        {renderAppointmentsTable(
+          pastAppointments,
+          "Reservas pasadas / Past bookings",
+          "No hay reservas pasadas."
+        )}
 
         <div className="mb-10 rounded-2xl border bg-card p-6 shadow-sm">
           <h2 className="mb-4 text-2xl font-bold text-brand-blue">
