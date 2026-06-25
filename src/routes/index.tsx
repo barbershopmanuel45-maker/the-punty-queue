@@ -488,6 +488,90 @@ function Services({
   );
 }
 
+function Reviews({
+  t,
+  lang,
+}: {
+  t: any;
+  lang: Lang;
+}) {
+  const [reviews, setReviews] = useState<ReviewUI[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const load = async () => {
+      try {
+        const result = await listReviews();
+        if (mounted) setReviews(result.data || []);
+      } catch (err) {
+        console.error("Failed to load reviews", err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  return (
+    <section id="reviews" className="py-20 md:py-28 px-4 sm:px-6 bg-secondary/30">
+      <div className="max-w-6xl mx-auto">
+        <SectionTitle
+          title={t.reviews.title}
+          subtitle={t.reviews.subtitle}
+        />
+
+        {loading ? (
+          <div className="text-center mt-12 text-muted-foreground">
+            {lang === "es" ? "Cargando reseñas..." : "Loading reviews..."}
+          </div>
+        ) : reviews.length === 0 ? (
+          <div className="text-center mt-12 text-muted-foreground">
+            {t.reviews.empty}
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+            {reviews.map((review) => (
+              <div
+                key={review.id || `${review.name}-${review.created_at}`}
+                className="bg-card rounded-2xl p-6 shadow-card hover:shadow-soft hover:-translate-y-1 transition flex flex-col"
+              >
+                <div className="flex items-center gap-1 mb-3 text-yellow-500 text-lg">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <span key={i}>
+                      {i < review.rating ? "★" : "☆"}
+                    </span>
+                  ))}
+                </div>
+
+                <p className="text-foreground text-sm leading-relaxed mb-4 flex-1">
+                  “{review.comment}”
+                </p>
+
+                <div className="mt-auto">
+                  <div className="font-bold text-brand-blue text-sm">
+                    {review.name}
+                  </div>
+
+                  <div className="text-xs text-muted-foreground">
+                    {review.role}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function Booking({
   t,
   lang,
