@@ -466,73 +466,17 @@ function AdminPage() {
           />
         </div>
 
-        <div className="mb-10 overflow-hidden rounded-2xl border bg-card shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-secondary">
-                <tr>
-                  <th className="p-4 text-left">Cliente</th>
-                  <th className="p-4 text-left">Teléfono</th>
-                  <th className="p-4 text-left">Email</th>
-                  <th className="p-4 text-left">Servicio</th>
-                  <th className="p-4 text-left">Precio</th>
-                  <th className="p-4 text-left">Duración</th>
-                  <th className="p-4 text-left">Barbero / Barber</th>
-                  <th className="p-4 text-left">Fecha</th>
-                  <th className="p-4 text-left">Hora</th>
-                  <th className="p-4 text-left">Estado</th>
-                  <th className="p-4 text-right">Acción</th>
-                </tr>
-              </thead>
+        {renderAppointmentsTable(
+          upcomingAppointments,
+          "Próximas reservas",
+          "No hay próximas reservas."
+        )}
 
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan={11} className="p-10 text-center">
-                      Cargando reservas...
-                    </td>
-                  </tr>
-                ) : filteredAppointments.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={11}
-                      className="p-10 text-center text-muted-foreground"
-                    >
-                      No hay reservas.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredAppointments.map((item) => (
-                    <tr key={`${item.source}-${item.id}`} className="border-t">
-                      <td className="p-4 font-semibold">{getCustomerName(item)}</td>
-                      <td className="p-4">{item.phone || "—"}</td>
-                      <td className="p-4">{item.email || "—"}</td>
-                      <td className="p-4">{getServiceName(item)}</td>
-                      <td className="p-4">{getServicePrice(item)}</td>
-                      <td className="p-4">{getServiceDuration(item)}</td>
-                      <td className="p-4">{item.barber || "—"}</td>
-                      <td className="p-4">{getDate(item)}</td>
-                      <td className="p-4">{getTime(item)}</td>
-                      <td className="p-4">
-                        <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
-                          {item.status || "confirmed"}
-                        </span>
-                      </td>
-                      <td className="p-4 text-right">
-                        <button
-                          onClick={() => deleteAppointment(item)}
-                          className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
-                        >
-                          Eliminar
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        {renderAppointmentsTable(
+          pastAppointments,
+          "Reservas pasadas",
+          "No hay reservas pasadas."
+        )}
 
         <div className="mb-10 rounded-2xl border bg-card p-6 shadow-sm">
           <h2 className="mb-4 text-2xl font-bold text-brand-blue">
