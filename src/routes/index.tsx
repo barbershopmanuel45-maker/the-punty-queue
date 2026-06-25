@@ -138,6 +138,8 @@ function Index() {
 
       <Services t={t} lang={lang} />
 
+      <Reviews t={t} lang={lang} />
+
       <Booking t={t} lang={lang} />
 
       <Walkin t={t} />
