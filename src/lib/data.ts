@@ -668,3 +668,47 @@ export async function createReminderLog(
 
   return rowToReminder(data);
 }
+
+// ---------- Reviews ----------
+
+export type ReviewUI = {
+  id?: string;
+  name: string;
+  role: string;
+  rating: number;
+  comment: string;
+  is_active: boolean;
+  created_at: string;
+};
+
+function rowToReview(row: any): ReviewUI {
+  return {
+    id: row.id,
+    name: row.name || "",
+    role: row.role || "",
+    rating: Number(row.rating) || 0,
+    comment: row.comment || "",
+    is_active: row.is_active === true,
+    created_at: row.created_at || "",
+  };
+}
+
+export async function listReviews(): Promise<{ data: ReviewUI[]; source: Source }> {
+  try {
+    const { data, error } = await supabase
+      .from("reviews")
+      .select("id, name, role, rating, comment, is_active, created_at")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("[supabase] listReviews failed", error);
+      throw error;
+    }
+
+    return { data: (data || []).map(rowToReview), source: "supabase" };
+  } catch (e) {
+    console.error("[reviews] failed to load reviews", e);
+    return { data: [], source: "localStorage" };
+  }
+}
