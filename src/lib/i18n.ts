@@ -45,6 +45,11 @@ export const translations = {
       subtitle: "Calidad profesional. Precios honestos.",
       min: "min",
     },
+    reviews: {
+      title: "Lo que dicen nuestros clientes",
+      subtitle: "Opiniones reales de nuestros clientes.",
+      empty: "Aún no hay reseñas disponibles.",
+    },
     booking: {
       title: "Reserva tu cita",
       subtitle: "Completa el formulario y recibe confirmación al instante.",
@@ -137,6 +142,11 @@ export const translations = {
       title: "Our services",
       subtitle: "Professional quality. Honest prices.",
       min: "min",
+    },
+    reviews: {
+      title: "What our clients say",
+      subtitle: "Real reviews from our clients.",
+      empty: "No reviews available yet.",
     },
     booking: {
       title: "Book your appointment",
