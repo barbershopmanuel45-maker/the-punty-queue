@@ -468,13 +468,13 @@ function AdminPage() {
 
         {renderAppointmentsTable(
           upcomingAppointments,
-          "Próximas reservas",
+          "Próximas reservas / Upcoming bookings",
           "No hay próximas reservas."
         )}
 
         {renderAppointmentsTable(
           pastAppointments,
-          "Reservas pasadas",
+          "Reservas pasadas / Past bookings",
           "No hay reservas pasadas."
         )}
 
