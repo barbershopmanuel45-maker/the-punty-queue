@@ -612,7 +612,7 @@ function AdminPage() {
         <div className="mb-6 rounded-2xl border bg-card p-5 shadow-sm">
           <input
             type="text"
-            placeholder="Buscar reservas..."
+            placeholder="Buscar por cliente, teléfono, email, servicio o barbero..."
             className="w-full rounded-xl border p-3"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
