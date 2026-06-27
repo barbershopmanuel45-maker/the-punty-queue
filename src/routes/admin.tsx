@@ -549,11 +549,23 @@ function AdminPage() {
                     <td className="p-4">{getDate(item)}</td>
                     <td className="p-4">{getTime(item)}</td>
                     <td className="p-4">
-                      <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
-                        {item.status || "confirmed"}
-                      </span>
+                      <select
+                        value={String(item.status || "confirmed").toLowerCase()}
+                        onChange={(e) => changeStatus(item, e.target.value)}
+                        className={`rounded-full px-3 py-1 text-sm font-semibold focus:outline-none ${statusBadgeClass(item.status)}`}
+                      >
+                        <option value="confirmed">Confirmed</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
                     </td>
-                    <td className="p-4 text-right">
+                    <td className="p-4 text-right whitespace-nowrap">
+                      <button
+                        onClick={() => openEdit(item)}
+                        className="mr-2 rounded-lg bg-brand-blue px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+                      >
+                        Editar
+                      </button>
                       <button
                         onClick={() => deleteAppointment(item)}
                         className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
