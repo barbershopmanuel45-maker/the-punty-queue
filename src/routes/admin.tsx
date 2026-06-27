@@ -395,6 +395,7 @@ function AdminPage() {
       const customer = item.customer_name || item.name || "";
       const service = item.service_name || item.service || "";
       const phone = item.phone || "";
+      const email = item.email || "";
       const barber = item.barber || "";
       const status = item.status || "";
 
@@ -402,6 +403,7 @@ function AdminPage() {
         customer.toLowerCase().includes(q) ||
         service.toLowerCase().includes(q) ||
         phone.toLowerCase().includes(q) ||
+        email.toLowerCase().includes(q) ||
         barber.toLowerCase().includes(q) ||
         status.toLowerCase().includes(q)
       );
