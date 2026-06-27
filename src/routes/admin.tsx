@@ -771,6 +771,230 @@ function AdminPage() {
           )}
         </div>
       </div>
+
+      {editing && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={closeEdit}
+        >
+          <div
+            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-card p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="mb-4 text-2xl font-bold text-brand-blue">
+              Editar reserva / Edit booking
+            </h2>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-sm font-semibold">
+                  Cliente / Customer
+                </label>
+                <input
+                  type="text"
+                  className="w-full rounded-lg border p-2"
+                  value={editForm.customer_name || ""}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, customer_name: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-semibold">
+                  Teléfono / Phone
+                </label>
+                <input
+                  type="tel"
+                  className="w-full rounded-lg border p-2"
+                  value={editForm.phone || ""}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, phone: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="mb-1 block text-sm font-semibold">Email</label>
+                <input
+                  type="email"
+                  className="w-full rounded-lg border p-2"
+                  value={editForm.email || ""}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, email: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="mb-1 block text-sm font-semibold">
+                  Servicio / Service
+                </label>
+                <select
+                  className="w-full rounded-lg border p-2"
+                  value={editForm.service_name || ""}
+                  onChange={(e) => {
+                    const name = e.target.value;
+                    const match = SERVICES.find((s) => s.name === name);
+                    setEditForm({
+                      ...editForm,
+                      service_name: name,
+                      service_price: match ? match.price : editForm.service_price,
+                      service_duration: match
+                        ? match.duration
+                        : editForm.service_duration,
+                    });
+                  }}
+                >
+                  <option value="">—</option>
+                  {SERVICES.map((s) => (
+                    <option key={s.name} value={s.name}>
+                      {s.name}
+                    </option>
+                  ))}
+                  {editForm.service_name &&
+                    !SERVICES.find((s) => s.name === editForm.service_name) && (
+                      <option value={editForm.service_name}>
+                        {editForm.service_name}
+                      </option>
+                    )}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-semibold">
+                  Precio (£) / Price
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  step={1}
+                  className="w-full rounded-lg border p-2"
+                  value={editForm.service_price ?? ""}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      service_price:
+                        e.target.value === "" ? null : Number(e.target.value),
+                    })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-semibold">
+                  Duración (min) / Duration
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  step={5}
+                  className="w-full rounded-lg border p-2"
+                  value={editForm.service_duration ?? ""}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      service_duration:
+                        e.target.value === "" ? null : Number(e.target.value),
+                    })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-semibold">
+                  Barbero / Barber
+                </label>
+                <select
+                  className="w-full rounded-lg border p-2"
+                  value={editForm.barber || ""}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, barber: e.target.value })
+                  }
+                >
+                  <option value="">—</option>
+                  {STAFF.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                  {editForm.barber && !STAFF.includes(editForm.barber) && (
+                    <option value={editForm.barber}>{editForm.barber}</option>
+                  )}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-semibold">
+                  Estado / Status
+                </label>
+                <select
+                  className="w-full rounded-lg border p-2"
+                  value={String(editForm.status || "confirmed").toLowerCase()}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, status: e.target.value })
+                  }
+                >
+                  <option value="confirmed">Confirmed</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-semibold">
+                  Fecha / Date
+                </label>
+                <input
+                  type="date"
+                  className="w-full rounded-lg border p-2"
+                  value={editForm.appointment_date || ""}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      appointment_date: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-semibold">
+                  Hora / Time
+                </label>
+                <input
+                  type="time"
+                  className="w-full rounded-lg border p-2"
+                  value={(editForm.appointment_time || "").slice(0, 5)}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      appointment_time: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={closeEdit}
+                disabled={saving}
+                className="rounded-lg border px-5 py-2 font-semibold transition hover:bg-secondary"
+              >
+                Cancelar / Cancel
+              </button>
+              <button
+                onClick={saveEdit}
+                disabled={saving}
+                className="rounded-lg bg-brand-blue px-5 py-2 font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+              >
+                {saving ? "Guardando..." : "Guardar / Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
