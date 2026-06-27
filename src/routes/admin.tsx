@@ -83,6 +83,145 @@ function AdminPage() {
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [walkinsLoading, setWalkinsLoading] = useState(false);
   const [query, setQuery] = useState("");
+  const [editing, setEditing] = useState<AppointmentRow | null>(null);
+  const [editForm, setEditForm] = useState<AppointmentRow>({});
+  const [saving, setSaving] = useState(false);
+
+  function openEdit(item: AppointmentRow) {
+    setEditing(item);
+    setEditForm({
+      customer_name: item.customer_name || item.name || "",
+      phone: item.phone || "",
+      email: item.email || "",
+      service_name: item.service_name || item.service || "",
+      service_price:
+        typeof item.service_price === "number" ? item.service_price : null,
+      service_duration:
+        typeof item.service_duration === "number" ? item.service_duration : null,
+      barber: item.barber || "",
+      appointment_date: item.appointment_date || item.date || "",
+      appointment_time: (item.appointment_time || item.time || "").slice(0, 5),
+      status: item.status || "confirmed",
+    });
+  }
+
+  function closeEdit() {
+    setEditing(null);
+    setEditForm({});
+  }
+
+  async function saveEdit() {
+    if (!editing?.id) return;
+
+    const name = String(editForm.customer_name || "").trim();
+    const date = String(editForm.appointment_date || "").trim();
+    const time = String(editForm.appointment_time || "").trim();
+
+    if (!name) {
+      alert("Nombre obligatorio / Name required");
+      return;
+    }
+    if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      alert("Fecha inválida (YYYY-MM-DD) / Invalid date");
+      return;
+    }
+    if (time && !/^\d{2}:\d{2}(:\d{2})?$/.test(time)) {
+      alert("Hora inválida (HH:MM) / Invalid time");
+      return;
+    }
+
+    const priceNum =
+      editForm.service_price === null || editForm.service_price === undefined || (editForm.service_price as any) === ""
+        ? null
+        : Number(editForm.service_price);
+    const durationNum =
+      editForm.service_duration === null || editForm.service_duration === undefined || (editForm.service_duration as any) === ""
+        ? null
+        : Number(editForm.service_duration);
+
+    if (priceNum !== null && Number.isNaN(priceNum)) {
+      alert("Precio inválido / Invalid price");
+      return;
+    }
+    if (durationNum !== null && Number.isNaN(durationNum)) {
+      alert("Duración inválida / Invalid duration");
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      if (editing.source === "appointments") {
+        const payload: Record<string, any> = {
+          customer_name: name,
+          phone: editForm.phone || "",
+          email: editForm.email || "",
+          service_name: editForm.service_name || "",
+          service_price: priceNum,
+          service_duration: durationNum,
+          barber: editForm.barber || "",
+          appointment_date: date || null,
+          appointment_time: time || null,
+          status: editForm.status || "confirmed",
+        };
+        const { error } = await supabase
+          .from("appointments")
+          .update(payload)
+          .eq("id", editing.id);
+        if (error) throw error;
+      } else {
+        const payload: Record<string, any> = {
+          name,
+          phone: editForm.phone || "",
+          email: editForm.email || "",
+          service: editForm.service_name || "",
+          barber: editForm.barber || "",
+          date: date || null,
+          time: time || null,
+          status: editForm.status || "confirmed",
+        };
+        const { error } = await supabase
+          .from("bookings")
+          .update(payload)
+          .eq("id", editing.id);
+        if (error) throw error;
+      }
+
+      closeEdit();
+      await loadAppointments();
+    } catch (e: any) {
+      console.error("[admin] saveEdit failed", e);
+      alert("Error guardando: " + (e?.message || "unknown"));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function changeStatus(item: AppointmentRow, status: string) {
+    if (!item.id) return;
+    const table = item.source === "appointments" ? "appointments" : "bookings";
+    const { error } = await supabase
+      .from(table)
+      .update({ status })
+      .eq("id", item.id);
+    if (error) {
+      console.error("[admin] changeStatus failed", error);
+      alert("Error: " + error.message);
+      return;
+    }
+    await loadAppointments();
+  }
+
+  function statusBadgeClass(status?: string | null) {
+    const s = String(status || "confirmed").toLowerCase();
+    if (s === "completed")
+      return "bg-blue-100 text-blue-700 border border-blue-200";
+    if (s === "cancelled")
+      return "bg-red-100 text-red-700 border border-red-200";
+    if (s === "pending")
+      return "bg-amber-100 text-amber-800 border border-amber-200";
+    return "bg-green-100 text-green-700 border border-green-200";
+  }
 
   useEffect(() => {
     async function validateAdminAccess() {
