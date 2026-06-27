@@ -83,6 +83,145 @@ function AdminPage() {
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [walkinsLoading, setWalkinsLoading] = useState(false);
   const [query, setQuery] = useState("");
+  const [editing, setEditing] = useState<AppointmentRow | null>(null);
+  const [editForm, setEditForm] = useState<AppointmentRow>({});
+  const [saving, setSaving] = useState(false);
+
+  function openEdit(item: AppointmentRow) {
+    setEditing(item);
+    setEditForm({
+      customer_name: item.customer_name || item.name || "",
+      phone: item.phone || "",
+      email: item.email || "",
+      service_name: item.service_name || item.service || "",
+      service_price:
+        typeof item.service_price === "number" ? item.service_price : null,
+      service_duration:
+        typeof item.service_duration === "number" ? item.service_duration : null,
+      barber: item.barber || "",
+      appointment_date: item.appointment_date || item.date || "",
+      appointment_time: (item.appointment_time || item.time || "").slice(0, 5),
+      status: item.status || "confirmed",
+    });
+  }
+
+  function closeEdit() {
+    setEditing(null);
+    setEditForm({});
+  }
+
+  async function saveEdit() {
+    if (!editing?.id) return;
+
+    const name = String(editForm.customer_name || "").trim();
+    const date = String(editForm.appointment_date || "").trim();
+    const time = String(editForm.appointment_time || "").trim();
+
+    if (!name) {
+      alert("Nombre obligatorio / Name required");
+      return;
+    }
+    if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      alert("Fecha inválida (YYYY-MM-DD) / Invalid date");
+      return;
+    }
+    if (time && !/^\d{2}:\d{2}(:\d{2})?$/.test(time)) {
+      alert("Hora inválida (HH:MM) / Invalid time");
+      return;
+    }
+
+    const priceNum =
+      editForm.service_price === null || editForm.service_price === undefined || (editForm.service_price as any) === ""
+        ? null
+        : Number(editForm.service_price);
+    const durationNum =
+      editForm.service_duration === null || editForm.service_duration === undefined || (editForm.service_duration as any) === ""
+        ? null
+        : Number(editForm.service_duration);
+
+    if (priceNum !== null && Number.isNaN(priceNum)) {
+      alert("Precio inválido / Invalid price");
+      return;
+    }
+    if (durationNum !== null && Number.isNaN(durationNum)) {
+      alert("Duración inválida / Invalid duration");
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      if (editing.source === "appointments") {
+        const payload: Record<string, any> = {
+          customer_name: name,
+          phone: editForm.phone || "",
+          email: editForm.email || "",
+          service_name: editForm.service_name || "",
+          service_price: priceNum,
+          service_duration: durationNum,
+          barber: editForm.barber || "",
+          appointment_date: date || null,
+          appointment_time: time || null,
+          status: editForm.status || "confirmed",
+        };
+        const { error } = await supabase
+          .from("appointments")
+          .update(payload)
+          .eq("id", editing.id);
+        if (error) throw error;
+      } else {
+        const payload: Record<string, any> = {
+          name,
+          phone: editForm.phone || "",
+          email: editForm.email || "",
+          service: editForm.service_name || "",
+          barber: editForm.barber || "",
+          date: date || null,
+          time: time || null,
+          status: editForm.status || "confirmed",
+        };
+        const { error } = await supabase
+          .from("bookings")
+          .update(payload)
+          .eq("id", editing.id);
+        if (error) throw error;
+      }
+
+      closeEdit();
+      await loadAppointments();
+    } catch (e: any) {
+      console.error("[admin] saveEdit failed", e);
+      alert("Error guardando: " + (e?.message || "unknown"));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function changeStatus(item: AppointmentRow, status: string) {
+    if (!item.id) return;
+    const table = item.source === "appointments" ? "appointments" : "bookings";
+    const { error } = await supabase
+      .from(table)
+      .update({ status })
+      .eq("id", item.id);
+    if (error) {
+      console.error("[admin] changeStatus failed", error);
+      alert("Error: " + error.message);
+      return;
+    }
+    await loadAppointments();
+  }
+
+  function statusBadgeClass(status?: string | null) {
+    const s = String(status || "confirmed").toLowerCase();
+    if (s === "completed")
+      return "bg-blue-100 text-blue-700 border border-blue-200";
+    if (s === "cancelled")
+      return "bg-red-100 text-red-700 border border-red-200";
+    if (s === "pending")
+      return "bg-amber-100 text-amber-800 border border-amber-200";
+    return "bg-green-100 text-green-700 border border-green-200";
+  }
 
   useEffect(() => {
     async function validateAdminAccess() {
@@ -256,6 +395,7 @@ function AdminPage() {
       const customer = item.customer_name || item.name || "";
       const service = item.service_name || item.service || "";
       const phone = item.phone || "";
+      const email = item.email || "";
       const barber = item.barber || "";
       const status = item.status || "";
 
@@ -263,6 +403,7 @@ function AdminPage() {
         customer.toLowerCase().includes(q) ||
         service.toLowerCase().includes(q) ||
         phone.toLowerCase().includes(q) ||
+        email.toLowerCase().includes(q) ||
         barber.toLowerCase().includes(q) ||
         status.toLowerCase().includes(q)
       );
@@ -408,11 +549,23 @@ function AdminPage() {
                     <td className="p-4">{getDate(item)}</td>
                     <td className="p-4">{getTime(item)}</td>
                     <td className="p-4">
-                      <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
-                        {item.status || "confirmed"}
-                      </span>
+                      <select
+                        value={String(item.status || "confirmed").toLowerCase()}
+                        onChange={(e) => changeStatus(item, e.target.value)}
+                        className={`rounded-full px-3 py-1 text-sm font-semibold focus:outline-none ${statusBadgeClass(item.status)}`}
+                      >
+                        <option value="confirmed">Confirmed</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
                     </td>
-                    <td className="p-4 text-right">
+                    <td className="p-4 text-right whitespace-nowrap">
+                      <button
+                        onClick={() => openEdit(item)}
+                        className="mr-2 rounded-lg bg-brand-blue px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+                      >
+                        Editar
+                      </button>
                       <button
                         onClick={() => deleteAppointment(item)}
                         className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
@@ -459,7 +612,7 @@ function AdminPage() {
         <div className="mb-6 rounded-2xl border bg-card p-5 shadow-sm">
           <input
             type="text"
-            placeholder="Buscar reservas..."
+            placeholder="Buscar por cliente, teléfono, email, servicio o barbero..."
             className="w-full rounded-xl border p-3"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
@@ -618,6 +771,230 @@ function AdminPage() {
           )}
         </div>
       </div>
+
+      {editing && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={closeEdit}
+        >
+          <div
+            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-card p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="mb-4 text-2xl font-bold text-brand-blue">
+              Editar reserva / Edit booking
+            </h2>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-sm font-semibold">
+                  Cliente / Customer
+                </label>
+                <input
+                  type="text"
+                  className="w-full rounded-lg border p-2"
+                  value={editForm.customer_name || ""}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, customer_name: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-semibold">
+                  Teléfono / Phone
+                </label>
+                <input
+                  type="tel"
+                  className="w-full rounded-lg border p-2"
+                  value={editForm.phone || ""}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, phone: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="mb-1 block text-sm font-semibold">Email</label>
+                <input
+                  type="email"
+                  className="w-full rounded-lg border p-2"
+                  value={editForm.email || ""}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, email: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="mb-1 block text-sm font-semibold">
+                  Servicio / Service
+                </label>
+                <select
+                  className="w-full rounded-lg border p-2"
+                  value={editForm.service_name || ""}
+                  onChange={(e) => {
+                    const name = e.target.value;
+                    const match = SERVICES.find((s) => s.name === name);
+                    setEditForm({
+                      ...editForm,
+                      service_name: name,
+                      service_price: match ? match.price : editForm.service_price,
+                      service_duration: match
+                        ? match.duration
+                        : editForm.service_duration,
+                    });
+                  }}
+                >
+                  <option value="">—</option>
+                  {SERVICES.map((s) => (
+                    <option key={s.name} value={s.name}>
+                      {s.name}
+                    </option>
+                  ))}
+                  {editForm.service_name &&
+                    !SERVICES.find((s) => s.name === editForm.service_name) && (
+                      <option value={editForm.service_name}>
+                        {editForm.service_name}
+                      </option>
+                    )}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-semibold">
+                  Precio (£) / Price
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  step={1}
+                  className="w-full rounded-lg border p-2"
+                  value={editForm.service_price ?? ""}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      service_price:
+                        e.target.value === "" ? null : Number(e.target.value),
+                    })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-semibold">
+                  Duración (min) / Duration
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  step={5}
+                  className="w-full rounded-lg border p-2"
+                  value={editForm.service_duration ?? ""}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      service_duration:
+                        e.target.value === "" ? null : Number(e.target.value),
+                    })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-semibold">
+                  Barbero / Barber
+                </label>
+                <select
+                  className="w-full rounded-lg border p-2"
+                  value={editForm.barber || ""}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, barber: e.target.value })
+                  }
+                >
+                  <option value="">—</option>
+                  {STAFF.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                  {editForm.barber && !STAFF.includes(editForm.barber) && (
+                    <option value={editForm.barber}>{editForm.barber}</option>
+                  )}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-semibold">
+                  Estado / Status
+                </label>
+                <select
+                  className="w-full rounded-lg border p-2"
+                  value={String(editForm.status || "confirmed").toLowerCase()}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, status: e.target.value })
+                  }
+                >
+                  <option value="confirmed">Confirmed</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-semibold">
+                  Fecha / Date
+                </label>
+                <input
+                  type="date"
+                  className="w-full rounded-lg border p-2"
+                  value={editForm.appointment_date || ""}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      appointment_date: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-semibold">
+                  Hora / Time
+                </label>
+                <input
+                  type="time"
+                  className="w-full rounded-lg border p-2"
+                  value={(editForm.appointment_time || "").slice(0, 5)}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      appointment_time: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={closeEdit}
+                disabled={saving}
+                className="rounded-lg border px-5 py-2 font-semibold transition hover:bg-secondary"
+              >
+                Cancelar / Cancel
+              </button>
+              <button
+                onClick={saveEdit}
+                disabled={saving}
+                className="rounded-lg bg-brand-blue px-5 py-2 font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+              >
+                {saving ? "Guardando..." : "Guardar / Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
