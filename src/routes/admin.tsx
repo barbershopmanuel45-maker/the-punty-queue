@@ -516,7 +516,7 @@ function AdminPage() {
                 <th className="p-4 text-left">Fecha</th>
                 <th className="p-4 text-left">Hora</th>
                 <th className="p-4 text-left">Estado</th>
-                <th className="p-4 text-right">Acción</th>
+                <th className="sticky right-0 z-20 bg-secondary p-4 text-right border-l border-border">Acción</th>
               </tr>
             </thead>
 
@@ -559,7 +559,7 @@ function AdminPage() {
                         <option value="cancelled">Cancelled</option>
                       </select>
                     </td>
-                    <td className="p-4 text-right whitespace-nowrap">
+                    <td className="sticky right-0 z-10 bg-card p-4 text-right whitespace-nowrap border-l border-border">
                       <button
                         onClick={() => openEdit(item)}
                         className="mr-2 rounded-lg bg-brand-blue px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
