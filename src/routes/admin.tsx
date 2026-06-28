@@ -633,31 +633,31 @@ function AdminPage() {
           <table className="w-full min-w-[900px] table-fixed text-sm">
             <thead className="bg-secondary">
               <tr>
-                <th className="w-[12%] px-3 py-2 text-left font-medium text-muted-foreground">
+                <th className="w-[10%] px-3 py-2 text-left font-medium text-muted-foreground">
                   Cliente / Customer
                 </th>
-                <th className="w-[15%] px-3 py-2 text-left font-medium text-muted-foreground">
+                <th className="w-[11%] px-3 py-2 text-left font-medium text-muted-foreground">
                   Contacto / Contact
                 </th>
-                <th className="w-[18%] px-3 py-2 text-left font-medium text-muted-foreground">
+                <th className="w-[15%] px-3 py-2 text-left font-medium text-muted-foreground">
                   Servicio / Service
                 </th>
-                <th className="w-[8%] px-3 py-2 text-left font-medium text-muted-foreground">
+                <th className="w-[7%] px-3 py-2 text-left font-medium text-muted-foreground">
                   Precio
                 </th>
-                <th className="w-[8%] px-3 py-2 text-left font-medium text-muted-foreground">
+                <th className="w-[7%] px-3 py-2 text-left font-medium text-muted-foreground">
                   Duración
                 </th>
                 <th className="w-[8%] px-3 py-2 text-left font-medium text-muted-foreground">
                   Barbero
                 </th>
-                <th className="w-[11%] px-3 py-2 text-left font-medium text-muted-foreground">
+                <th className="w-[10%] px-3 py-2 text-left font-medium text-muted-foreground">
                   Fecha / Date
                 </th>
-                <th className="w-[15%] px-3 py-2 text-left font-medium text-muted-foreground">
+                <th className="w-[14%] px-3 py-2 text-left font-medium text-muted-foreground">
                   Estado / Status
                 </th>
-                <th className="sticky right-0 z-20 w-[10%] border-l border-border bg-secondary px-3 py-2 text-right font-medium text-muted-foreground">
+                <th className="sticky right-0 z-20 w-[18%] border-l border-border bg-secondary px-3 py-2 text-right font-medium text-muted-foreground">
                   Acción
                 </th>
               </tr>
