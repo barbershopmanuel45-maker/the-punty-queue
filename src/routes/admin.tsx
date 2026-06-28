@@ -70,6 +70,41 @@ const SERVICES = [
 
 const STAFF = ["Junior"];
 
+function StatCard({
+  label,
+  value,
+  colorClass,
+  borderClass,
+}: {
+  label: string;
+  value: string | number;
+  colorClass?: string;
+  borderClass?: string;
+}) {
+  return (
+    <div
+      className={`rounded-xl border border-border bg-card p-4 shadow-sm border-l-4 ${
+        borderClass || "border-l-brand-blue"
+      }`}
+    >
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        {label}
+      </p>
+      <p className={`mt-1 text-2xl font-bold ${colorClass || "text-brand-blue"}`}>
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function statusLabel(status: string) {
+  const s = status.toLowerCase();
+  if (s === "confirmed" || s === "pending") return "Pendiente / Pending";
+  if (s === "completed") return "Completada / Completed";
+  if (s === "cancelled") return "Cancelada / Cancelled";
+  return status;
+}
+
 function AdminPage() {
   const navigate = useNavigate();
 
@@ -410,30 +445,6 @@ function AdminPage() {
     });
   }, [sortedAppointments, query]);
 
-  const { upcomingAppointments, pastAppointments } = useMemo(() => {
-    const today = new Date();
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-
-    const upcoming: AppointmentRow[] = [];
-    const past: AppointmentRow[] = [];
-
-    for (const item of filteredAppointments) {
-      const dateStr = getDate(item);
-      if (!dateStr || dateStr === "—") {
-        upcoming.push(item);
-        continue;
-      }
-
-      if (dateStr >= todayStr) {
-        upcoming.push(item);
-      } else {
-        past.push(item);
-      }
-    }
-
-    return { upcomingAppointments: upcoming, pastAppointments: past };
-  }, [filteredAppointments]);
-
   function getCustomerName(item: AppointmentRow) {
     return item.customer_name || item.name || "Cliente";
   }
@@ -453,6 +464,18 @@ function AdminPage() {
     );
 
     return match ? `£${match.price}` : "—";
+  }
+
+  function getNumericPrice(item: AppointmentRow) {
+    const price = item.service_price;
+    if (typeof price === "number") return price;
+
+    const match = SERVICES.find(
+      (service) =>
+        service.name.toLowerCase() === getServiceName(item).toLowerCase()
+    );
+
+    return match ? match.price : null;
   }
 
   function getServiceDuration(item: AppointmentRow) {
@@ -476,6 +499,63 @@ function AdminPage() {
     return item.appointment_time || item.time || "—";
   }
 
+  function splitByDate(items: AppointmentRow[]) {
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+    const upcoming: AppointmentRow[] = [];
+    const past: AppointmentRow[] = [];
+
+    for (const item of items) {
+      const dateStr = getDate(item);
+      if (!dateStr || dateStr === "—") {
+        upcoming.push(item);
+        continue;
+      }
+
+      if (dateStr >= todayStr) {
+        upcoming.push(item);
+      } else {
+        past.push(item);
+      }
+    }
+
+    return { upcoming, past };
+  }
+
+  const { upcoming: allUpcoming, past: allPast } = useMemo(
+    () => splitByDate(sortedAppointments),
+    [sortedAppointments]
+  );
+
+  const { upcoming: upcomingAppointments, past: pastAppointments } = useMemo(
+    () => splitByDate(filteredAppointments),
+    [filteredAppointments]
+  );
+
+  const totalCount = appointments.length;
+
+  const completedCount = useMemo(
+    () => appointments.filter((item) => String(item.status || "confirmed").toLowerCase() === "completed").length,
+    [appointments]
+  );
+
+  const cancelledCount = useMemo(
+    () => appointments.filter((item) => String(item.status || "confirmed").toLowerCase() === "cancelled").length,
+    [appointments]
+  );
+
+  const estimatedRevenue = useMemo(
+    () =>
+      appointments.reduce((sum, item) => {
+        const status = String(item.status || "confirmed").toLowerCase();
+        if (status === "cancelled") return sum;
+        const price = getNumericPrice(item);
+        return sum + (price || 0);
+      }, 0),
+    [appointments]
+  );
+
   if (!authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -491,90 +571,188 @@ function AdminPage() {
     );
   }
 
+  function exportCSV() {
+    const headers = [
+      "Cliente / Customer",
+      "Telefono / Phone",
+      "Email",
+      "Servicio / Service",
+      "Precio / Price",
+      "Duracion / Duration",
+      "Barbero / Barber",
+      "Fecha / Date",
+      "Hora / Time",
+      "Estado / Status",
+      "Origen / Source",
+    ];
+
+    const rows = filteredAppointments.map((item) => {
+      const status = String(item.status || "confirmed").toLowerCase();
+      return [
+        getCustomerName(item),
+        item.phone || "",
+        item.email || "",
+        getServiceName(item),
+        getServicePrice(item),
+        getServiceDuration(item),
+        item.barber || "",
+        getDate(item),
+        getTime(item),
+        statusLabel(status),
+        item.source === "appointments" ? "Appointments" : "Bookings",
+      ];
+    });
+
+    const csv = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `reservas-juniorfadefactory-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
   function renderAppointmentsTable(
     items: AppointmentRow[],
     title: string,
     emptyMessage: string
   ) {
     return (
-      <div className="mb-10 overflow-hidden rounded-2xl border bg-card shadow-sm">
-        <div className="border-b bg-secondary p-4">
-          <h2 className="text-xl font-bold text-brand-blue">{title}</h2>
+      <div className="mb-8 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <div className="border-b border-border bg-secondary px-4 py-3">
+          <h2 className="text-lg font-bold text-brand-blue">{title}</h2>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[900px] table-fixed text-sm">
             <thead className="bg-secondary">
               <tr>
-                <th className="p-4 text-left">Cliente</th>
-                <th className="p-4 text-left">Teléfono</th>
-                <th className="p-4 text-left">Email</th>
-                <th className="p-4 text-left">Servicio</th>
-                <th className="p-4 text-left">Precio</th>
-                <th className="p-4 text-left">Duración</th>
-                <th className="p-4 text-left">Barbero / Barber</th>
-                <th className="p-4 text-left">Fecha</th>
-                <th className="p-4 text-left">Hora</th>
-                <th className="p-4 text-left">Estado</th>
-                <th className="sticky right-0 z-20 bg-secondary p-4 text-right border-l border-border">Acción</th>
+                <th className="w-[12%] px-3 py-2 text-left font-medium text-muted-foreground">
+                  Cliente / Customer
+                </th>
+                <th className="w-[15%] px-3 py-2 text-left font-medium text-muted-foreground">
+                  Contacto / Contact
+                </th>
+                <th className="w-[18%] px-3 py-2 text-left font-medium text-muted-foreground">
+                  Servicio / Service
+                </th>
+                <th className="w-[8%] px-3 py-2 text-left font-medium text-muted-foreground">
+                  Precio
+                </th>
+                <th className="w-[8%] px-3 py-2 text-left font-medium text-muted-foreground">
+                  Duración
+                </th>
+                <th className="w-[8%] px-3 py-2 text-left font-medium text-muted-foreground">
+                  Barbero
+                </th>
+                <th className="w-[11%] px-3 py-2 text-left font-medium text-muted-foreground">
+                  Fecha / Date
+                </th>
+                <th className="w-[15%] px-3 py-2 text-left font-medium text-muted-foreground">
+                  Estado / Status
+                </th>
+                <th className="sticky right-0 z-20 w-[10%] border-l border-border bg-secondary px-3 py-2 text-right font-medium text-muted-foreground">
+                  Acción
+                </th>
               </tr>
             </thead>
 
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={11} className="p-10 text-center">
+                  <td colSpan={9} className="px-3 py-8 text-center">
                     Cargando reservas...
                   </td>
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={11}
-                    className="p-10 text-center text-muted-foreground"
+                    colSpan={9}
+                    className="px-3 py-8 text-center text-muted-foreground"
                   >
                     {emptyMessage}
                   </td>
                 </tr>
               ) : (
-                items.map((item) => (
-                  <tr key={`${item.source}-${item.id}`} className="border-t">
-                    <td className="p-4 font-semibold">{getCustomerName(item)}</td>
-                    <td className="p-4">{item.phone || "—"}</td>
-                    <td className="p-4">{item.email || "—"}</td>
-                    <td className="p-4">{getServiceName(item)}</td>
-                    <td className="p-4">{getServicePrice(item)}</td>
-                    <td className="p-4">{getServiceDuration(item)}</td>
-                    <td className="p-4">{item.barber || "—"}</td>
-                    <td className="p-4">{getDate(item)}</td>
-                    <td className="p-4">{getTime(item)}</td>
-                    <td className="p-4">
-                      <select
-                        value={String(item.status || "confirmed").toLowerCase()}
-                        onChange={(e) => changeStatus(item, e.target.value)}
-                        className={`rounded-full px-3 py-1 text-sm font-semibold focus:outline-none ${statusBadgeClass(item.status)}`}
-                      >
-                        <option value="confirmed">Confirmed</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                      </select>
-                    </td>
-                    <td className="sticky right-0 z-10 bg-card p-4 text-right whitespace-nowrap border-l border-border">
-                      <button
-                        onClick={() => openEdit(item)}
-                        className="mr-2 rounded-lg bg-brand-blue px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => deleteAppointment(item)}
-                        className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
-                      >
-                        Eliminar
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                items.map((item) => {
+                  const status = String(item.status || "confirmed").toLowerCase();
+                  return (
+                    <tr
+                      key={`${item.source}-${item.id}`}
+                      className="border-b border-border last:border-b-0 hover:bg-muted/30"
+                    >
+                      <td className="px-3 py-2">
+                        <div className="truncate font-semibold" title={getCustomerName(item)}>
+                          {getCustomerName(item)}
+                        </div>
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="truncate" title={item.phone || ""}>
+                          {item.phone || "—"}
+                        </div>
+                        <div
+                          className="truncate text-xs text-muted-foreground"
+                          title={item.email || ""}
+                        >
+                          {item.email || "—"}
+                        </div>
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="truncate" title={getServiceName(item)}>
+                          {getServiceName(item)}
+                        </div>
+                      </td>
+                      <td className="px-3 py-2">{getServicePrice(item)}</td>
+                      <td className="px-3 py-2">{getServiceDuration(item)}</td>
+                      <td className="px-3 py-2 truncate">
+                        {item.barber || "—"}
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="truncate">{getDate(item)}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {getTime(item) !== "—" ? getTime(item) : ""}
+                        </div>
+                      </td>
+                      <td className="px-3 py-2">
+                        <select
+                          value={status}
+                          onChange={(e) => changeStatus(item, e.target.value)}
+                          className={`w-full min-w-[120px] rounded-full px-2 py-1 text-xs font-semibold focus:outline-none ${statusBadgeClass(status)}`}
+                        >
+                          <option value="confirmed">
+                            {statusLabel("confirmed")}
+                          </option>
+                          <option value="completed">
+                            {statusLabel("completed")}
+                          </option>
+                          <option value="cancelled">
+                            {statusLabel("cancelled")}
+                          </option>
+                        </select>
+                      </td>
+                      <td className="sticky right-0 z-10 border-l border-border bg-card px-3 py-2 text-right whitespace-nowrap">
+                        <button
+                          onClick={() => openEdit(item)}
+                          className="mr-2 rounded-md bg-brand-blue px-3 py-1.5 text-xs font-semibold text-white transition hover:opacity-90"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => deleteAppointment(item)}
+                          className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-700"
+                        >
+                          Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -584,17 +762,21 @@ function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background p-4 md:p-6">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-brand-blue">Admin Panel</h1>
-            <p className="mt-2 text-muted-foreground">JuniorFADEfactory · Barber Shop</p>
+            <h1 className="text-2xl font-bold text-brand-blue">
+              Panel admin / Admin panel
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              JuniorFADEfactory · Barber Shop
+            </p>
 
             {profile && (
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Logged as:
-                <span className="ml-2 font-semibold text-brand-blue">
+                <span className="ml-1 font-semibold text-brand-blue">
                   {profile.role}
                 </span>
               </p>
@@ -603,32 +785,106 @@ function AdminPage() {
 
           <button
             onClick={handleLogout}
-            className="rounded-xl bg-red-600 px-6 py-3 font-semibold text-white transition hover:bg-red-700"
+            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
           >
             Cerrar sesión
           </button>
         </div>
 
-        <div className="mb-6 rounded-2xl border bg-card p-5 shadow-sm">
-          <input
-            type="text"
-            placeholder="Buscar por cliente, teléfono, email, servicio o barbero..."
-            className="w-full rounded-xl border p-3"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
+        <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+          <StatCard
+            label="Total reservas / Total bookings"
+            value={totalCount}
+            colorClass="text-brand-blue"
+            borderClass="border-l-brand-blue"
           />
+          <StatCard
+            label="Próximas reservas / Upcoming"
+            value={allUpcoming.length}
+            colorClass="text-brand-blue"
+            borderClass="border-l-brand-blue"
+          />
+          <StatCard
+            label="Reservas pasadas / Past"
+            value={allPast.length}
+            colorClass="text-brand-gray"
+            borderClass="border-l-brand-gray"
+          />
+          <StatCard
+            label="Completadas / Completed"
+            value={completedCount}
+            colorClass="text-brand-blue"
+            borderClass="border-l-brand-blue"
+          />
+          <StatCard
+            label="Canceladas / Cancelled"
+            value={cancelledCount}
+            colorClass="text-brand-red"
+            borderClass="border-l-brand-red"
+          />
+          <StatCard
+            label="Ingresos estimados / Est. revenue"
+            value={`£${estimatedRevenue.toFixed(2)}`}
+            colorClass="text-brand-blue"
+            borderClass="border-l-brand-blue"
+          />
+        </div>
+
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative flex-1 max-w-md">
+            <svg
+              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              type="text"
+              placeholder="Buscar por cliente, teléfono, email, servicio o barbero..."
+              className="h-9 w-full rounded-lg border border-border bg-card pl-9 pr-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </div>
+
+          <button
+            onClick={exportCSV}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-blue px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
+            </svg>
+            Exportar CSV
+          </button>
         </div>
 
         {renderAppointmentsTable(
           upcomingAppointments,
           "Próximas reservas / Upcoming bookings",
-          "No hay próximas reservas."
+          "No hay próximas reservas / No upcoming bookings."
         )}
 
         {renderAppointmentsTable(
           pastAppointments,
           "Reservas pasadas / Past bookings",
-          "No hay reservas pasadas."
+          "No hay reservas pasadas / No past bookings."
         )}
 
         <div className="mb-10 rounded-2xl border bg-card p-6 shadow-sm">
