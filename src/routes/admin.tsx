@@ -505,8 +505,21 @@ function AdminPage() {
 
     const upcoming: AppointmentRow[] = [];
     const past: AppointmentRow[] = [];
+    const completed: AppointmentRow[] = [];
+    const cancelled: AppointmentRow[] = [];
 
     for (const item of items) {
+      const status = String(item.status || "confirmed").toLowerCase();
+
+      if (status === "completed") {
+        completed.push(item);
+        continue;
+      }
+      if (status === "cancelled") {
+        cancelled.push(item);
+        continue;
+      }
+
       const dateStr = getDate(item);
       if (!dateStr || dateStr === "—") {
         upcoming.push(item);
@@ -520,18 +533,21 @@ function AdminPage() {
       }
     }
 
-    return { upcoming, past };
+    return { upcoming, past, completed, cancelled };
   }
 
-  const { upcoming: allUpcoming, past: allPast } = useMemo(
-    () => splitByDate(sortedAppointments),
-    [sortedAppointments]
-  );
+  const {
+    upcoming: allUpcoming,
+    past: allPast,
+  } = useMemo(() => splitByDate(sortedAppointments), [sortedAppointments]);
 
-  const { upcoming: upcomingAppointments, past: pastAppointments } = useMemo(
-    () => splitByDate(filteredAppointments),
-    [filteredAppointments]
-  );
+  const {
+    upcoming: upcomingAppointments,
+    past: pastAppointments,
+    completed: completedAppointments,
+    cancelled: cancelledAppointments,
+  } = useMemo(() => splitByDate(filteredAppointments), [filteredAppointments]);
+
 
   const totalCount = appointments.length;
 
@@ -583,7 +599,6 @@ function AdminPage() {
       "Fecha / Date",
       "Hora / Time",
       "Estado / Status",
-      "Origen / Source",
     ];
 
     const rows = filteredAppointments.map((item) => {
@@ -599,9 +614,9 @@ function AdminPage() {
         getDate(item),
         getTime(item),
         statusLabel(status),
-        item.source === "appointments" ? "Appointments" : "Bookings",
       ];
     });
+
 
     const csv = [headers, ...rows]
       .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
@@ -886,6 +901,19 @@ function AdminPage() {
           "Reservas pasadas / Past bookings",
           "No hay reservas pasadas / No past bookings."
         )}
+
+        {renderAppointmentsTable(
+          completedAppointments,
+          "Completadas / Completed",
+          "No hay reservas completadas / No completed bookings."
+        )}
+
+        {renderAppointmentsTable(
+          cancelledAppointments,
+          "Canceladas / Cancelled",
+          "No hay reservas canceladas / No cancelled bookings."
+        )}
+
 
         <div className="mb-10 rounded-2xl border bg-card p-6 shadow-sm">
           <h2 className="mb-4 text-2xl font-bold text-brand-blue">
