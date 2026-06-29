@@ -902,6 +902,19 @@ function AdminPage() {
           "No hay reservas pasadas / No past bookings."
         )}
 
+        {renderAppointmentsTable(
+          completedAppointments,
+          "Completadas / Completed",
+          "No hay reservas completadas / No completed bookings."
+        )}
+
+        {renderAppointmentsTable(
+          cancelledAppointments,
+          "Canceladas / Cancelled",
+          "No hay reservas canceladas / No cancelled bookings."
+        )}
+
+
         <div className="mb-10 rounded-2xl border bg-card p-6 shadow-sm">
           <h2 className="mb-4 text-2xl font-bold text-brand-blue">
             Servicios y precios
