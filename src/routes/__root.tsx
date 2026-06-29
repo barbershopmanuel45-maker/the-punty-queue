@@ -1,4 +1,5 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import HideLovableBadge from "../components/HideLovableBadge";
 
 import appCss from "../styles.css?url";
 
@@ -98,5 +99,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
-  return <Outlet />;
+  return (
+    <>
+      <HideLovableBadge />
+      <Outlet />
+    </>
+  );
 }
