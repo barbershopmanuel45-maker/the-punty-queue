@@ -505,8 +505,21 @@ function AdminPage() {
 
     const upcoming: AppointmentRow[] = [];
     const past: AppointmentRow[] = [];
+    const completed: AppointmentRow[] = [];
+    const cancelled: AppointmentRow[] = [];
 
     for (const item of items) {
+      const status = String(item.status || "confirmed").toLowerCase();
+
+      if (status === "completed") {
+        completed.push(item);
+        continue;
+      }
+      if (status === "cancelled") {
+        cancelled.push(item);
+        continue;
+      }
+
       const dateStr = getDate(item);
       if (!dateStr || dateStr === "—") {
         upcoming.push(item);
@@ -520,18 +533,21 @@ function AdminPage() {
       }
     }
 
-    return { upcoming, past };
+    return { upcoming, past, completed, cancelled };
   }
 
-  const { upcoming: allUpcoming, past: allPast } = useMemo(
-    () => splitByDate(sortedAppointments),
-    [sortedAppointments]
-  );
+  const {
+    upcoming: allUpcoming,
+    past: allPast,
+  } = useMemo(() => splitByDate(sortedAppointments), [sortedAppointments]);
 
-  const { upcoming: upcomingAppointments, past: pastAppointments } = useMemo(
-    () => splitByDate(filteredAppointments),
-    [filteredAppointments]
-  );
+  const {
+    upcoming: upcomingAppointments,
+    past: pastAppointments,
+    completed: completedAppointments,
+    cancelled: cancelledAppointments,
+  } = useMemo(() => splitByDate(filteredAppointments), [filteredAppointments]);
+
 
   const totalCount = appointments.length;
 
