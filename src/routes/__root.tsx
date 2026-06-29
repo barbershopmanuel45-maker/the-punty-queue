@@ -64,6 +64,11 @@ export const Route = createRootRoute({
         name: "twitter:image",
         content: "https://juniorfadefactory.lovable.app/project-preview.png",
       },
+      { name: "description", content: "Reserva online en JuniorFADEfactory Barber Shop London SE1. Cortes, degradados, barba y servicios VIP sin esperas. Agenda tu cita fácil y rápido." },
+      { property: "og:description", content: "Reserva online en JuniorFADEfactory Barber Shop London SE1. Cortes, degradados, barba y servicios VIP sin esperas. Agenda tu cita fácil y rápido." },
+      { name: "twitter:description", content: "Reserva online en JuniorFADEfactory Barber Shop London SE1. Cortes, degradados, barba y servicios VIP sin esperas. Agenda tu cita fácil y rápido." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/42ff160b-378a-4dad-9153-2aa741641bda/id-preview-54407ace--71e33015-6d41-47c8-9d77-b59cc8884a31.lovable.app-1782725912392.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/42ff160b-378a-4dad-9153-2aa741641bda/id-preview-54407ace--71e33015-6d41-47c8-9d77-b59cc8884a31.lovable.app-1782725912392.png" },
     ],
     links: [
       { rel: "icon", type: "image/png", href: "/favicon.png" },
