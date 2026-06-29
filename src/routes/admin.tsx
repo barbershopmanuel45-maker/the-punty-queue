@@ -599,7 +599,6 @@ function AdminPage() {
       "Fecha / Date",
       "Hora / Time",
       "Estado / Status",
-      "Origen / Source",
     ];
 
     const rows = filteredAppointments.map((item) => {
@@ -615,9 +614,9 @@ function AdminPage() {
         getDate(item),
         getTime(item),
         statusLabel(status),
-        item.source === "appointments" ? "Appointments" : "Bookings",
       ];
     });
+
 
     const csv = [headers, ...rows]
       .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
