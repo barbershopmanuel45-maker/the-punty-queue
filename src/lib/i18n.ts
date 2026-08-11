@@ -2,6 +2,7 @@ export type Lang = "es" | "en";
 
 export const translations = {
   es: {
+    brandTagline: "PELUQUERÍA & BELLEZA",
     nav: {
       home: "Inicio",
       services: "Servicios",
@@ -10,6 +11,7 @@ export const translations = {
       contact: "Contacto",
     },
     cta: "Reservar ahora",
+
     hero: {
       title: "Tu cita, a tu hora. Sin esperas.",
       subtitle: "Reserva online o entra en cola sin complicaciones.",
@@ -45,11 +47,20 @@ export const translations = {
       subtitle: "Calidad profesional. Precios honestos.",
       min: "min",
     },
+    styles: {
+      title: "Trenzado y peinados",
+      subtitle: "Nuestros estilos de trenzado, twists y crochet.",
+      comingSoon: "Próximamente disponible para reserva online",
+      book: "Reservar",
+      view: "Ver servicio",
+    },
     reviews: {
       title: "Lo que dicen nuestros clientes",
       subtitle: "Opiniones reales de nuestros clientes.",
       empty: "Aún no hay reseñas disponibles.",
+      loading: "Cargando reseñas...",
     },
+
     booking: {
       title: "Reserva tu cita",
       subtitle: "Completa el formulario y recibe confirmación al instante.",
@@ -71,6 +82,14 @@ export const translations = {
       loadingTimes: "Cargando horarios...",
       selectTime: "Selecciona una hora",
       chooseDateFirst: "Primero elige fecha",
+      saving: "Guardando…",
+      invalidPhone: "Introduce un móvil UK válido. Ejemplo: 07788998899",
+      invalidEmail: "Introduce un email válido.",
+      pastDate: "No puedes reservar una fecha pasada.",
+      outsideHours: "Horario no disponible. Abrimos todos los días {h}.",
+      slotTaken:
+        "Este horario ya no está disponible. Selecciona otro horario.",
+      saveError: "No se pudo guardar la reserva. Inténtalo otra vez.",
     },
     walkin: {
       title: "Walk-in: cola virtual",
@@ -91,16 +110,21 @@ export const translations = {
       ],
     },
     footer: {
+      description:
+        "Peluquería y centro de belleza. Reserva online tu cita de peluquería, color o belleza en segundos.",
       address: "Dirección",
       hours: "Horario",
-      weekdays: "Lunes-Sábado",
+      weekdays: "Lunes–Sábado",
       sunday: "Domingo",
       rights: "Todos los derechos reservados.",
     },
+
   },
 
   en: {
+    brandTagline: "HAIR & BEAUTY",
     nav: {
+
       home: "Home",
       services: "Services",
       booking: "Book",
@@ -143,11 +167,20 @@ export const translations = {
       subtitle: "Professional quality. Honest prices.",
       min: "min",
     },
+    styles: {
+      title: "Braiding & hairstyles",
+      subtitle: "Our braiding, twist and crochet styles.",
+      comingSoon: "Online booking coming soon",
+      book: "Book",
+      view: "View service",
+    },
     reviews: {
       title: "What our clients say",
       subtitle: "Real reviews from our clients.",
       empty: "No reviews available yet.",
+      loading: "Loading reviews...",
     },
+
     booking: {
       title: "Book your appointment",
       subtitle: "Fill in the form and get instant confirmation.",
@@ -164,11 +197,19 @@ export const translations = {
       duration: "Duration",
       submit: "Confirm booking",
       success: "Booking confirmed!",
-      successDesc: "We'll see you at our salon.",
+      successDesc: "We look forward to welcoming you to our salon.",
       close: "Close",
       loadingTimes: "Loading times...",
       selectTime: "Select a time",
       chooseDateFirst: "Choose a date first",
+      saving: "Saving…",
+      invalidPhone: "Enter a valid UK mobile. Example: 07788998899",
+      invalidEmail: "Enter a valid email address.",
+      pastDate: "You cannot book a past date.",
+      outsideHours: "Time not available. We open every day {h}.",
+      slotTaken:
+        "This time is no longer available. Please choose another time.",
+      saveError: "The booking could not be saved. Please try again.",
     },
     walkin: {
       title: "Walk-in: virtual queue",
@@ -189,12 +230,15 @@ export const translations = {
       ],
     },
     footer: {
+      description:
+        "Hair & beauty salon. Book your hair, colour or beauty appointment online in seconds.",
       address: "Address",
       hours: "Hours",
-      weekdays: "Monday-Saturday",
+      weekdays: "Monday–Saturday",
       sunday: "Sunday",
       rights: "All rights reserved.",
     },
+
   },
 };
 
@@ -242,3 +286,110 @@ export const professionals = ["Profesional 1", "Profesional 2"];
 export const barberProfessionals = professionals;
 export const hairProfessionals = professionals;
 export const barbers = professionals;
+/**
+ * Visual braiding/hairstyle catalogue.
+ * IMPORTANT: these entries are VISUAL ONLY. They are not part of the
+ * bookable catalogue (public.services) yet, so `bookable` stays false
+ * until each one is created in Supabase with a real price, duration and
+ * staff_services association. Nothing here is ever sent to create_booking.
+ */
+export type StyleShowcaseItem = {
+  id: string;
+  image: string;
+  bookable: false;
+  name_es: string;
+  name_en: string;
+  desc_es: string;
+  desc_en: string;
+  alt_es: string;
+  alt_en: string;
+};
+
+export const styleShowcase: StyleShowcaseItem[] = [
+  {
+    id: "cornrows",
+    image: "cornrows-grid",
+    bookable: false,
+    name_es: "Trenzas pegadas",
+    name_en: "Cornrows",
+    desc_es:
+      "Trenzas pegadas al cuero cabelludo con diseños limpios y personalizados.",
+    desc_en: "Close-to-scalp braids with clean, personalised patterns.",
+    alt_es: "Ejemplo de trenzas pegadas",
+    alt_en: "Cornrows hairstyle example",
+  },
+  {
+    id: "individual_braids",
+    image: "feedin-braids",
+    bookable: false,
+    name_es: "Trenza individual",
+    name_en: "Individual braids",
+    desc_es:
+      "Trenzas individuales versátiles disponibles en diferentes largos y estilos.",
+    desc_en:
+      "Versatile individual braids available in different lengths and styles.",
+    alt_es: "Ejemplo de trenzas individuales largas",
+    alt_en: "Long individual braids hairstyle example",
+  },
+  {
+    id: "knotless_braids",
+    image: "knotless-colour",
+    bookable: false,
+    name_es: "Trenza sin nudo",
+    name_en: "Knotless braids",
+    desc_es: "Trenzas sin nudo con acabado ligero, natural y cómodo.",
+    desc_en:
+      "Lightweight knotless braids with a natural and comfortable finish.",
+    alt_es: "Ejemplo de trenzas sin nudo con extensiones de color",
+    alt_en: "Knotless braids with coloured extensions example",
+  },
+  {
+    id: "micro_twists",
+    image: "box-braids",
+    bookable: false,
+    name_es: "Micro-twist",
+    name_en: "Micro twists",
+    desc_es: "Twists finos y definidos para un acabado elegante y duradero.",
+    desc_en: "Fine, defined twists for an elegant and long-lasting finish.",
+    alt_es: "Ejemplo de micro-twists y trenzas finas",
+    alt_en: "Micro twists and fine braids example",
+  },
+  {
+    id: "natural_twists",
+    image: "cornrows-bun",
+    bookable: false,
+    name_es: "Twist en cabello natural",
+    name_en: "Natural hair twists",
+    desc_es:
+      "Twists realizados sobre cabello natural para definir, proteger y estilizar.",
+    desc_en: "Twists created on natural hair to define, protect and style.",
+    alt_es: "Ejemplo de peinado con twists sobre cabello natural",
+    alt_en: "Natural hair twists hairstyle example",
+  },
+  {
+    id: "crochet_braids",
+    image: "crochet-curly",
+    bookable: false,
+    name_es: "Crochet braids",
+    name_en: "Crochet braids",
+    desc_es:
+      "Instalación de crochet braids con diferentes texturas, largos y estilos.",
+    desc_en:
+      "Crochet braid installation available in different textures, lengths and styles.",
+    alt_es: "Ejemplo de crochet braids con textura rizada",
+    alt_en: "Crochet braids with curly texture example",
+  },
+  {
+    id: "wash_blowdry",
+    image: "salon",
+    bookable: false,
+    name_es: "Lavado y secado",
+    name_en: "Wash and blow-dry",
+    desc_es:
+      "Lavado profesional y secado para dejar el cabello limpio, suave y preparado.",
+    desc_en:
+      "Professional wash and blow-dry for clean, soft and styled hair.",
+    alt_es: "Interior del salón Brightobarber",
+    alt_en: "Brightobarber salon interior",
+  },
+];
