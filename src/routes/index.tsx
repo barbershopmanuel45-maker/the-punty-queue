@@ -31,10 +31,12 @@ import {
 import {
   createBooking,
   createWalkin,
+  isSlotTakenError,
   listBookings,
   listReviews,
   type ReviewUI,
 } from "@/lib/data";
+
 
 import { supabase } from "@/lib/supabase";
 
