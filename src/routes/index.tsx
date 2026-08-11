@@ -30,8 +30,6 @@ import {
   translations,
   services,
   styleShowcase,
-  barberProfessionals,
-  hairProfessionals,
   type Lang,
 } from "@/lib/i18n";
 
@@ -53,8 +51,11 @@ import {
   isSlotTakenError,
   listBookings,
   listReviews,
+  staffForService,
+  type CatalogueStaff,
   type ReviewUI,
 } from "@/lib/data";
+
 
 
 import { supabase } from "@/lib/supabase";
@@ -669,10 +670,37 @@ function Booking({
       (s) => s.id === form.service,
     ) || services[0];
 
-  const currentProfessionals =
-    selected.category === "hair"
-      ? hairProfessionals
-      : barberProfessionals;
+  // Compatible professionals come from staff_services (no hardcoded UUIDs).
+  const [currentProfessionals, setCurrentProfessionals] = useState<string[]>(
+    [],
+  );
+
+  useEffect(() => {
+    let alive = true;
+
+    staffForService(selected.id)
+      .then((staff: CatalogueStaff[]) => {
+        if (!alive) return;
+        const names = staff.map((s) => s.name);
+        setCurrentProfessionals(names);
+        setForm((current) =>
+          current.barber !== "any" && !names.includes(current.barber)
+            ? { ...current, barber: names.length === 1 ? names[0] : "any" }
+            : names.length === 1 && current.barber === "any"
+              ? { ...current, barber: names[0] }
+              : current,
+        );
+      })
+      .catch((err: unknown) => {
+        console.error("[booking form] staff_services load failed", err);
+        if (alive) setCurrentProfessionals([]);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [selected.id]);
+
 
   useEffect(() => {
     const loadBookings = async () => {
@@ -710,23 +738,8 @@ function Booking({
       };
 
       if (key === "service") {
-        const nextService =
-          services.find(
-            (s) => s.id === value,
-          ) || services[0];
-
-        const nextProfessionals =
-          nextService.category === "hair"
-            ? hairProfessionals
-            : barberProfessionals;
-
-        if (
-          !nextProfessionals.includes(
-            next.barber,
-          )
-        ) {
-          next.barber = "any";
-        }
+        // Compatible professionals are resolved from staff_services.
+        next.barber = "any";
       }
 
       return next;
@@ -1133,7 +1146,9 @@ const isActiveBooking = (status?: string) => {
               onChange={(e) => update("barber", e.target.value)}
               className={inputCls}
             >
-              <option value="any">{t.booking.any}</option>
+              {currentProfessionals.length > 1 && (
+                <option value="any">{t.booking.any}</option>
+              )}
               {currentProfessionals.map((p) => (
                 <option key={p} value={p}>
                   {p}
@@ -1260,8 +1275,14 @@ const isActiveBooking = (status?: string) => {
 
               <div>
                 {confirmed.serviceLabel || confirmed.service} —{" "}
-                {formatServicePrice(confirmed.price, lang)}
+                {confirmed.pricePending
+                  ? pricingCopy[lang].onConsultation
+                  : formatServicePrice(
+                      confirmed.agreedPrice ?? confirmed.price,
+                      lang,
+                    )}
               </div>
+
 
               <div className="text-muted-foreground">
                 {confirmed.barber}

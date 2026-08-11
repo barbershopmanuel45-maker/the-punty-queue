@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import logo from "@/assets/logo.png";
-import {
-  services,
-  professionals as allProfessionals,
-  type Lang,
-} from "@/lib/i18n";
+import { services, type Lang } from "@/lib/i18n";
 import {
   businessConfig,
   formatOpeningHours,
@@ -17,6 +13,8 @@ import {
   createWalkin,
   isSlotTakenError,
   listBookings,
+  loadCatalogue,
+  requestConsultation,
 } from "@/lib/data";
 
 
@@ -40,7 +38,22 @@ type Step =
         | "time";
       data: any;
     }
-  | { name: "walkin_name" };
+  | { name: "walkin_name" }
+  | {
+      name: "consult";
+      field:
+        | "service"
+        | "date"
+        | "time"
+        | "alt"
+        | "quote"
+        | "budget"
+        | "name"
+        | "phone"
+        | "email"
+        | "notes";
+      data: any;
+    };
 
 const T = {
   es: {
@@ -48,7 +61,7 @@ const T = {
     online: "En línea",
     placeholder: "Escribe un mensaje...",
     initial: `Hola, soy el asistente de ${businessConfig.businessName}. ¿En qué puedo ayudarte?`,
-    quick: ["Reservar", "Cancelar", "Walk-in"],
+    quick: ["Reservar", "Consultar precio y horario", "Cancelar", "Walk-in"],
     menu: "Puedo ayudarte con: reservar, cancelar o entrar en walk-in.",
     askName: "Perfecto. ¿Cuál es tu nombre?",
     askPhone: "Gracias {n}. ¿Tu teléfono móvil UK?",
@@ -78,6 +91,27 @@ const T = {
     noProfessionalAvailable: "Ese horario ya no está disponible. Elige otro.",
     sundayWalkin: "Los domingos solo atendemos con reserva previa.",
     bookingError: "No se pudo guardar la reserva. Inténtalo otra vez.",
+    consultTitle: "Consultar precio y horario",
+    consultIntro:
+      "Puedo recoger tu solicitud para que la profesional te indique precio y horario. No confirmo precio ni hora.",
+    consultService:
+      "¿Qué servicio quieres consultar?\n\n{list}\n\nResponde con el número.",
+    consultDate: "¿Qué fecha prefieres? (YYYY-MM-DD)",
+    consultTime: "¿A qué hora preferirías? (HH:MM)",
+    consultAlt:
+      "¿Tienes una hora alternativa? (HH:MM o escribe \"no\")",
+    consultQuote:
+      "¿Prefieres que la profesional te indique el precio?\n\n1. Prefiero que la profesional me indique el precio\n2. Quiero indicar un presupuesto orientativo",
+    consultBudget: "¿Cuál es tu presupuesto orientativo? (£)",
+    consultName: "¿Cuál es tu nombre?",
+    consultPhone: "¿Tu teléfono móvil UK?",
+    consultEmail: "¿Tu email? (o escribe \"no\")",
+    consultNotes:
+      "¿Alguna nota sobre tu cabello o el estilo? (o escribe \"no\")",
+    consultSent:
+      "✅ Solicitud enviada.\n\n{s}\n📅 {d} {t}\n\nPrecio a consultar. La profesional te contactará para confirmar precio y horario. Pago en efectivo en el salón.",
+    consultError:
+      "No se pudo enviar la solicitud. Inténtalo otra vez.",
   },
 
   en: {
@@ -85,7 +119,7 @@ const T = {
     online: "Online",
     placeholder: "Type a message...",
     initial: `Hi, I'm the ${businessConfig.businessName} assistant. How can I help you?`,
-    quick: ["Book", "Cancel", "Walk-in"],
+    quick: ["Book", "Discuss price and time", "Cancel", "Walk-in"],
     menu: "I can help with: book, cancel or join the walk-in queue.",
     askName: "Great. What's your name?",
     askPhone: "Thanks {n}. Your UK mobile number?",
@@ -116,6 +150,24 @@ const T = {
     noProfessionalAvailable: "That time is no longer available. Please choose another.",
     sundayWalkin: "Sundays are booking only. Walk-ins unavailable.",
     bookingError: "Could not save the booking. Please try again.",
+    consultTitle: "Discuss price and time",
+    consultIntro:
+      "I can take your request so the professional can quote the price and time. I don't confirm price or time.",
+    consultService:
+      "Which service would you like to discuss?\n\n{list}\n\nReply with the number.",
+    consultDate: "Which date do you prefer? (YYYY-MM-DD)",
+    consultTime: "What time would you prefer? (HH:MM)",
+    consultAlt: "Any alternative time? (HH:MM or type \"no\")",
+    consultQuote:
+      "Would you like the professional to quote the price?\n\n1. I prefer the professional to quote the price\n2. I'd like to suggest a budget",
+    consultBudget: "What is your indicative budget? (£)",
+    consultName: "What's your name?",
+    consultPhone: "Your UK mobile number?",
+    consultEmail: "Your email? (or type \"no\")",
+    consultNotes: "Any notes about your hair or the style? (or type \"no\")",
+    consultSent:
+      "✅ Request sent.\n\n{s}\n📅 {d} {t}\n\nPrice on consultation. The professional will contact you to confirm price and time. Cash payment at the salon.",
+    consultError: "Could not send the request. Please try again.",
   },
 };
 
@@ -189,9 +241,10 @@ function isActiveBooking(status?: string) {
   return status === "confirmed" || status === "pending";
 }
 
-function staffForService(_service: (typeof services)[0]) {
-  return allProfessionals;
-}
+/** Services that require a price/time consultation (never quoted by the bot). */
+const CONSULTATION_SLUGS = services
+  .filter((s) => s.id !== "haircut")
+  .map((s) => s.id);
 
 function bookingOverlaps(
   booking: any,
@@ -276,7 +329,33 @@ export default function PuntyAssistant({
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [step, setStep] = useState<Step>({ name: "idle" });
+  const [staffMap, setStaffMap] = useState<Record<string, string[]>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Compatible professionals come from staff_services (never hardcoded).
+  useEffect(() => {
+    let alive = true;
+
+    loadCatalogue()
+      .then((catalogue) => {
+        if (!alive) return;
+        const map: Record<string, string[]> = {};
+        for (const [slug, staff] of Object.entries(catalogue.staffByService)) {
+          map[slug] = staff.map((member) => member.name);
+        }
+        setStaffMap(map);
+      })
+      .catch((err: unknown) => {
+        console.error("[assistant] catalogue load failed", err);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const staffForService = (service: (typeof services)[0]) =>
+    staffMap[service.id] || [];
 
   const tt = T[lang];
 
@@ -330,7 +409,16 @@ export default function PuntyAssistant({
     }
 
     if (step.name === "book") return handleBook(text);
+    if (step.name === "consult") return handleConsult(text);
     if (step.name === "walkin_name") return handleWalkin(text);
+
+    if (
+      /(consultar precio|discuss price|consulta de precio|price and time|presupuesto|quote)/.test(
+        low,
+      )
+    ) {
+      return startConsult();
+    }
 
     if (/^(reservar|book|booking|reserva)/.test(low)) return startBook();
 
@@ -478,6 +566,16 @@ export default function PuntyAssistant({
 
       const professionals = staffForService(d.service);
 
+      if (professionals.length === 1) {
+        d.barber = professionals[0];
+
+        setStep({ name: "book", field: "date", data: d });
+
+        push({ role: "bot", text: tt.askDate });
+
+        return;
+      }
+
       const list = [
         `1. ${lang === "es" ? "Cualquiera disponible" : "Anyone available"}`,
         ...professionals.map((p, i) => `${i + 2}. ${p}`),
@@ -618,6 +716,165 @@ export default function PuntyAssistant({
         });
       }
 
+    }
+  };
+
+  // ---------- Consultation (price/time negotiation, never a booking) ----------
+
+  const consultServices = services.filter((s) =>
+    CONSULTATION_SLUGS.includes(s.id),
+  );
+
+  const startConsult = () => {
+    setStep({ name: "consult", field: "service", data: {} });
+
+    const list = consultServices
+      .map((s, i) => `${i + 1}. ${serviceName(s)}`)
+      .join("\n");
+
+    push([
+      { role: "bot", text: tt.consultIntro },
+      { role: "bot", text: tt.consultService.replace("{list}", list) },
+    ]);
+  };
+
+  const handleConsult = async (text: string) => {
+    if (step.name !== "consult") return;
+
+    const d = { ...step.data };
+    const value = text.trim();
+    const skipped = /^(no|nada|none|skip)$/i.test(value);
+
+    const go = (field: any, msg: string) => {
+      setStep({ name: "consult", field, data: d });
+      push({ role: "bot", text: msg });
+    };
+
+    if (step.field === "service") {
+      const idx = parseInt(value, 10) - 1;
+
+      if (isNaN(idx) || !consultServices[idx]) {
+        return push({ role: "bot", text: tt.invalid });
+      }
+
+      d.service = consultServices[idx];
+      return go("date", tt.consultDate);
+    }
+
+    if (step.field === "date") {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return push({ role: "bot", text: tt.invalid });
+      }
+
+      if (value < getTodayIso()) {
+        return push({ role: "bot", text: tt.pastDate });
+      }
+
+      d.date = value;
+      return go("time", tt.consultTime);
+    }
+
+    if (step.field === "time") {
+      if (!/^\d{2}:\d{2}$/.test(value)) {
+        return push({ role: "bot", text: tt.invalid });
+      }
+
+      d.time = value;
+      return go("alt", tt.consultAlt);
+    }
+
+    if (step.field === "alt") {
+      if (!skipped && !/^\d{2}:\d{2}$/.test(value)) {
+        return push({ role: "bot", text: tt.invalid });
+      }
+
+      d.altTime = skipped ? null : value;
+      return go("quote", tt.consultQuote);
+    }
+
+    if (step.field === "quote") {
+      if (value === "1") {
+        d.wantsProQuote = true;
+        return go("name", tt.consultName);
+      }
+
+      if (value === "2") {
+        d.wantsProQuote = false;
+        return go("budget", tt.consultBudget);
+      }
+
+      return push({ role: "bot", text: tt.invalid });
+    }
+
+    if (step.field === "budget") {
+      const amount = Number(value.replace(/[^0-9.]/g, ""));
+
+      if (!amount || Number.isNaN(amount)) {
+        return push({ role: "bot", text: tt.invalid });
+      }
+
+      d.budget = amount;
+      return go("name", tt.consultName);
+    }
+
+    if (step.field === "name") {
+      if (!value) return push({ role: "bot", text: tt.invalid });
+
+      d.name = value;
+      return go("phone", tt.consultPhone);
+    }
+
+    if (step.field === "phone") {
+      if (!isValidUkMobile(value)) {
+        return push({ role: "bot", text: tt.invalidPhone });
+      }
+
+      d.phone = normalizeUkMobile(value);
+      return go("email", tt.consultEmail);
+    }
+
+    if (step.field === "email") {
+      if (!skipped && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        return push({ role: "bot", text: tt.invalidEmail });
+      }
+
+      d.email = skipped ? null : value.toLowerCase();
+      return go("notes", tt.consultNotes);
+    }
+
+    if (step.field === "notes") {
+      d.notes = skipped ? null : value;
+
+      setStep({ name: "idle" });
+
+      try {
+        await requestConsultation({
+          name: d.name,
+          phone: d.phone,
+          email: d.email,
+          serviceSlug: d.service.id,
+          preferredDate: d.date,
+          preferredTime: d.time,
+          altDate: d.altTime ? d.date : null,
+          altTime: d.altTime,
+          proposedPrice: d.wantsProQuote ? null : d.budget,
+          wantsProQuote: Boolean(d.wantsProQuote),
+          hairNotes: d.notes,
+        });
+
+        push({
+          role: "bot",
+          text: tt.consultSent
+            .replace("{s}", serviceName(d.service))
+            .replace("{d}", d.date)
+            .replace("{t}", d.time),
+          quick: tt.quick,
+        });
+      } catch (error) {
+        console.error("[assistant] consultation failed", error);
+
+        push({ role: "bot", text: tt.consultError, quick: tt.quick });
+      }
     }
   };
 

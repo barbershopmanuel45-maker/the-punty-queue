@@ -8,7 +8,8 @@ import {
   formatServicePrice,
   pricingCopy,
 } from "../lib/business";
-import { services as catalogueServices, professionals } from "../lib/i18n";
+import { services as catalogueServices } from "../lib/i18n";
+import { loadCatalogue } from "../lib/data";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
@@ -71,7 +72,6 @@ const SERVICES = catalogueServices.map((service) => ({
   duration: service.duration,
 }));
 
-const STAFF = professionals;
 
 function StatCard({
   label,
@@ -124,6 +124,24 @@ function AdminPage() {
   const [editing, setEditing] = useState<AppointmentRow | null>(null);
   const [editForm, setEditForm] = useState<AppointmentRow>({});
   const [saving, setSaving] = useState(false);
+  // Team names come from the staff table, never hardcoded.
+  const [STAFF, setStaff] = useState<string[]>([]);
+
+  useEffect(() => {
+    let alive = true;
+
+    loadCatalogue()
+      .then((catalogue) => {
+        if (alive) setStaff(catalogue.staff.map((member) => member.name));
+      })
+      .catch((err: unknown) => {
+        console.error("[admin] staff load failed", err);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   function openEdit(item: AppointmentRow) {
     setEditing(item);

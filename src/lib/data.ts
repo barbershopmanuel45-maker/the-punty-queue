@@ -296,13 +296,16 @@ export type CatalogueStaff = {
 let cataloguePromise: Promise<{
   services: CatalogueService[];
   staff: CatalogueStaff[];
+  /** service slug -> compatible staff, straight from staff_services. */
+  staffByService: Record<string, CatalogueStaff[]>;
 }> | null = null;
+
 
 /** Reads the authoritative catalogue (public, read-only). Cached per session. */
 export function loadCatalogue() {
   if (!cataloguePromise) {
     cataloguePromise = (async () => {
-      const [svc, stf] = await Promise.all([
+      const [svc, stf, link] = await Promise.all([
         supabase
           .from("services")
           .select(
@@ -310,34 +313,114 @@ export function loadCatalogue() {
           )
           .eq("is_active", true),
         supabase.from("staff").select("id, slug, name").eq("is_active", true),
+        supabase.from("staff_services").select("staff_id, service_id"),
       ]);
 
       if (svc.error) throw svc.error;
       if (stf.error) throw stf.error;
+      if (link.error) throw link.error;
 
-      return {
-        services: (svc.data || []).map((r: any) => ({
-          id: r.id,
-          slug: r.slug,
-          name: r.name,
-          price: r.price_on_consultation ? null : Number(r.price) || null,
-          duration:
-            Number(r.booking_block_minutes) || Number(r.duration_minutes) || 30,
-        })),
-        staff: (stf.data || []).map((r: any) => ({
-          id: r.id,
-          slug: r.slug,
-          name: r.name,
-        })),
-      };
+      const services: CatalogueService[] = (svc.data || []).map((r: any) => ({
+        id: r.id,
+        slug: r.slug,
+        name: r.name,
+        price: r.price_on_consultation ? null : Number(r.price) || null,
+        duration:
+          Number(r.booking_block_minutes) || Number(r.duration_minutes) || 30,
+      }));
+
+      const staff: CatalogueStaff[] = (stf.data || []).map((r: any) => ({
+        id: r.id,
+        slug: r.slug,
+        name: r.name,
+      }));
+
+      const staffById = new Map(staff.map((s) => [s.id, s]));
+      const staffByService: Record<string, CatalogueStaff[]> = {};
+
+      for (const service of services) staffByService[service.slug] = [];
+
+      for (const row of (link.data || []) as any[]) {
+        const service = services.find((s) => s.id === row.service_id);
+        const member = staffById.get(row.staff_id);
+        if (!service || !member) continue;
+        const list = staffByService[service.slug];
+        if (!list.some((s) => s.id === member.id)) list.push(member);
+      }
+
+      return { services, staff, staffByService };
+
     })().catch((e) => {
       cataloguePromise = null;
       throw e;
     });
   }
 
-  return cataloguePromise;
+  return cataloguePromise!;
 }
+
+/** Professionals allowed for a service slug (from staff_services). */
+export async function staffForService(
+  serviceSlug: string,
+): Promise<CatalogueStaff[]> {
+  const catalogue = await loadCatalogue();
+  return catalogue.staffByService[serviceSlug] || [];
+}
+
+// ---------- Consultation requests (AI agent, no booking created) ----------
+
+export type ConsultationInput = {
+  name: string;
+  phone: string;
+  email?: string | null;
+  serviceSlug: string;
+  preferredDate: string;
+  preferredTime: string;
+  altDate?: string | null;
+  altTime?: string | null;
+  proposedPrice?: number | null;
+  wantsProQuote?: boolean;
+  hairNotes?: string | null;
+  comments?: string | null;
+};
+
+/**
+ * Creates a price/time consultation request through the existing RPC.
+ * It never creates an appointment and never agrees a price.
+ */
+export async function requestConsultation(input: ConsultationInput) {
+  const catalogue = await loadCatalogue();
+  const svc = catalogue.services.find((s) => s.slug === input.serviceSlug);
+
+  if (!svc) throw new Error("SERVICE_NOT_AVAILABLE");
+
+  const wantsProQuote =
+    input.wantsProQuote === undefined ? true : input.wantsProQuote;
+
+  const { data, error } = await supabase.rpc("request_consultation", {
+    _customer_name: input.name,
+    _phone: input.phone,
+    _service_id: svc.id,
+    _preferred_date: input.preferredDate,
+    _preferred_time: input.preferredTime,
+    _alt_date: input.altDate || null,
+    _alt_time: input.altTime || null,
+    _proposed_price: wantsProQuote ? null : (input.proposedPrice ?? null),
+    _wants_pro_quote: wantsProQuote,
+    _email: input.email || null,
+    _hair_notes: input.hairNotes || null,
+    _comments: input.comments || null,
+  });
+
+  if (error) {
+    console.error("[supabase] request_consultation failed", error);
+    throw error;
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+  return { id: row?.id as string | undefined, status: row?.status || "pending" };
+}
+
 
 // ---------- Bookings ----------
 
