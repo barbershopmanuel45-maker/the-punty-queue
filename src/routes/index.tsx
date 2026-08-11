@@ -681,7 +681,7 @@ function Booking({
     let alive = true;
 
     staffForService(selected.id)
-      .then((staff) => {
+      .then((staff: CatalogueStaff[]) => {
         if (!alive) return;
         const names = staff.map((s) => s.name);
         setCurrentProfessionals(names);
@@ -693,7 +693,7 @@ function Booking({
               : current,
         );
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.error("[booking form] staff_services load failed", err);
         if (alive) setCurrentProfessionals([]);
       });
@@ -740,23 +740,8 @@ function Booking({
       };
 
       if (key === "service") {
-        const nextService =
-          services.find(
-            (s) => s.id === value,
-          ) || services[0];
-
-        const nextProfessionals =
-          nextService.category === "hair"
-            ? hairProfessionals
-            : barberProfessionals;
-
-        if (
-          !nextProfessionals.includes(
-            next.barber,
-          )
-        ) {
-          next.barber = "any";
-        }
+        // Compatible professionals are resolved from staff_services.
+        next.barber = "any";
       }
 
       return next;
