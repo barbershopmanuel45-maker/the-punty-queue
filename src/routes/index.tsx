@@ -9,10 +9,27 @@ import {
 
 import logo from "@/assets/logo.png";
 import hero from "@/assets/hero.jpeg";
+import styleCornrowsBun from "@/assets/style-cornrows-bun.jpeg.asset.json";
+import styleCornrowsGrid from "@/assets/style-cornrows-grid.jpeg.asset.json";
+import styleFeedinBraids from "@/assets/style-feedin-braids.jpeg.asset.json";
+import styleCrochetCurly from "@/assets/style-crochet-curly.jpeg.asset.json";
+import styleKnotlessColour from "@/assets/style-knotless-colour.jpeg.asset.json";
+import styleBoxBraids from "@/assets/style-box-braids.jpeg.asset.json";
+
+const styleImages: Record<string, string> = {
+  "cornrows-bun": styleCornrowsBun.url,
+  "cornrows-grid": styleCornrowsGrid.url,
+  "feedin-braids": styleFeedinBraids.url,
+  "crochet-curly": styleCrochetCurly.url,
+  "knotless-colour": styleKnotlessColour.url,
+  "box-braids": styleBoxBraids.url,
+  salon: hero,
+};
 
 import {
   translations,
   services,
+  styleShowcase,
   barberProfessionals,
   hairProfessionals,
   type Lang,
@@ -113,6 +130,8 @@ function Index() {
 
       <Services t={t} lang={lang} />
 
+      <StyleShowcase t={t} lang={lang} />
+
       <Reviews t={t} lang={lang} />
 
       <Booking t={t} lang={lang} />
@@ -161,7 +180,7 @@ function Header({
             </div>
 
             <div className="text-[10px] tracking-[0.2em] text-brand-gray uppercase">
-              {businessConfig.tagline}
+              {t.brandTagline}
             </div>
           </div>
         </a>
@@ -473,6 +492,57 @@ function Services({
   );
 }
 
+function StyleShowcase({
+  t,
+  lang,
+}: {
+  t: any;
+  lang: Lang;
+}) {
+  return (
+    <section
+      id="styles"
+      className="py-20 md:py-28 px-4 sm:px-6"
+    >
+      <div className="max-w-7xl mx-auto">
+        <SectionTitle title={t.styles.title} subtitle={t.styles.subtitle} />
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+          {styleShowcase.map((item) => (
+            <article
+              key={item.id}
+              className="bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-soft hover:-translate-y-1 transition flex flex-col"
+            >
+              <div className="aspect-[4/3] w-full overflow-hidden bg-secondary">
+                <img
+                  src={styleImages[item.image]}
+                  alt={lang === "es" ? item.alt_es : item.alt_en}
+                  loading="lazy"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              <div className="p-6 flex flex-col flex-1">
+                <h3 className="font-bold text-brand-blue text-lg mb-2">
+                  {lang === "es" ? item.name_es : item.name_en}
+                </h3>
+
+                <p className="text-sm text-muted-foreground flex-1">
+                  {lang === "es" ? item.desc_es : item.desc_en}
+                </p>
+
+                <span className="mt-4 inline-flex self-start rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+                  {t.styles.comingSoon}
+                </span>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Reviews({
   t,
   lang,
@@ -514,7 +584,7 @@ function Reviews({
 
         {loading ? (
           <div className="text-center mt-12 text-muted-foreground">
-            {lang === "es" ? "Cargando reseñas..." : "Loading reviews..."}
+            {t.reviews.loading}
           </div>
         ) : reviews.length === 0 ? (
           <div className="text-center mt-12 text-muted-foreground">
@@ -895,17 +965,17 @@ const isActiveBooking = (status?: string) => {
     if (saving) return;
 
     if (!isValidUkMobile(form.phone)) {
-      setError("Introduce un móvil UK válido. Ejemplo: 07788998899");
+      setError(t.booking.invalidPhone);
       return;
     }
 
     if (!isValidEmail(form.email)) {
-      setError("Introduce un email válido.");
+      setError(t.booking.invalidEmail);
       return;
     }
 
     if (!form.date || form.date < todayIso()) {
-      setError("No puedes reservar una fecha pasada.");
+      setError(t.booking.pastDate);
       return;
     }
 
@@ -914,9 +984,7 @@ const isActiveBooking = (status?: string) => {
       !isValidOpeningTime(form.date, form.time, selected.duration)
     ) {
       setError(
-        `Horario no disponible. Lunes a sábado ${formatOpeningHours(
-          1,
-        )}. Domingos ${formatOpeningHours(0)}.`,
+        t.booking.outsideHours.replace("{h}", formatOpeningHours(1)),
       );
       return;
     }
@@ -985,9 +1053,7 @@ const isActiveBooking = (status?: string) => {
       console.error("[booking form] save failed", err);
 
       if (isSlotTakenError(err)) {
-        setError(
-          "Lo sentimos, ese horario acaba de ser reservado. Elige otro horario.",
-        );
+        setError(t.booking.slotTaken);
 
         try {
           const refreshed = await listBookings();
@@ -996,7 +1062,7 @@ const isActiveBooking = (status?: string) => {
           console.warn("[booking form] availability refresh failed", refreshError);
         }
       } else {
-        setError("No se pudo guardar la reserva. Inténtalo otra vez.");
+        setError(t.booking.saveError);
       }
     } finally {
 
@@ -1092,10 +1158,10 @@ const isActiveBooking = (status?: string) => {
             >
               <option value="">
                 {loadingSlots
-                  ? "Cargando horarios..."
+                  ? t.booking.loadingTimes
                   : form.date
-                    ? "Selecciona una hora"
-                    : "Primero elige fecha"}
+                    ? t.booking.selectTime
+                    : t.booking.chooseDateFirst}
               </option>
 
               {availableSlots.map((slot) => (
@@ -1147,7 +1213,7 @@ const isActiveBooking = (status?: string) => {
               disabled={saving || loadingSlots}
               className="bg-gradient-brand text-white px-8 py-3 rounded-full font-semibold shadow-soft hover:scale-105 transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {saving ? "Guardando…" : t.booking.submit}
+              {saving ? t.booking.saving : t.booking.submit}
             </button>
           </div>
         </form>
@@ -1365,13 +1431,13 @@ function Footer({ t }: { t: any }) {
                 {businessConfig.businessName}
               </div>
               <div className="text-[10px] tracking-[0.2em] text-white/60 uppercase">
-                {businessConfig.tagline}
+                {t.brandTagline}
               </div>
             </div>
           </div>
 
           <p className="text-sm text-white/60 max-w-xs">
-            {businessConfig.description}
+            {t.footer.description}
           </p>
         </div>
 
@@ -1380,7 +1446,9 @@ function Footer({ t }: { t: any }) {
           <p className="text-sm text-white/70 leading-relaxed">
             {businessConfig.address}
             <br />
-            {businessConfig.city} {businessConfig.postcode}
+            {businessConfig.city}, {businessConfig.postcode}
+            <br />
+            {businessConfig.country}
           </p>
         </div>
 
