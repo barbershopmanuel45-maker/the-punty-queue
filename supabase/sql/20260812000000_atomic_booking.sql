@@ -47,16 +47,20 @@ CREATE TABLE IF NOT EXISTS public.business_hours (
   CHECK (close_time > open_time)
 );
 
-INSERT INTO public.business_hours (business_id, dow, open_time, close_time)
+-- Brightobarber: lunes a domingo, 10:00–22:00.
+INSERT INTO public.business_hours (business_id, dow, open_time, close_time, is_closed)
 VALUES
-  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 0, '10:00', '17:00'),
-  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 1, '09:00', '19:00'),
-  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 2, '09:00', '19:00'),
-  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 3, '09:00', '19:00'),
-  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 4, '09:00', '19:00'),
-  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 5, '09:00', '19:00'),
-  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 6, '09:00', '19:00')
-ON CONFLICT (business_id, dow) DO NOTHING;
+  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 0, '10:00', '22:00', false),
+  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 1, '10:00', '22:00', false),
+  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 2, '10:00', '22:00', false),
+  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 3, '10:00', '22:00', false),
+  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 4, '10:00', '22:00', false),
+  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 5, '10:00', '22:00', false),
+  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 6, '10:00', '22:00', false)
+ON CONFLICT (business_id, dow) DO UPDATE
+SET open_time  = EXCLUDED.open_time,
+    close_time = EXCLUDED.close_time,
+    is_closed  = EXCLUDED.is_closed;
 
 -- business_settings holds internal configuration (timezone, initial status,
 -- slot interval). The public site never reads it: the RPC does. Keep it
