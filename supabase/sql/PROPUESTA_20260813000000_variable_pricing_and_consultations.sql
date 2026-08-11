@@ -54,51 +54,70 @@ COMMENT ON COLUMN public.services.booking_block_minutes IS
 
 -- ---------------------------------------------------------------
 -- 1b. Catálogo final. cut_styling se renombra (conserva UUID e historial).
+--     Denominación INCLUSIVA: "Corte de cabello" / "Haircut" (Brighto atiende
+--     caballeros y también señoras según el tipo de corte).
 -- ---------------------------------------------------------------
+ALTER TABLE public.services
+  ADD COLUMN IF NOT EXISTS description_es text,
+  ADD COLUMN IF NOT EXISTS description_en text,
+  ADD COLUMN IF NOT EXISTS name_en text;
+
 UPDATE public.services
-SET slug = 'mens_haircut', name = 'Corte de cabello para hombres',
-    category = 'barber', is_active = true
-WHERE business_id = public.current_business_id() AND slug = 'cut_styling';
+SET slug = 'haircut',
+    name = 'Corte de cabello',
+    name_en = 'Haircut',
+    category = 'barber',
+    is_active = true,
+    description_es = 'Corte de cabello realizado por Brighto. Servicio disponible para caballeros y también para señoras según el tipo de corte solicitado.',
+    description_en = 'Haircut by Brighto. Available for men and also for women depending on the requested haircut style.'
+WHERE business_id = public.current_business_id() AND slug IN ('cut_styling', 'mens_haircut');
 
 INSERT INTO public.services
-  (business_id, slug, name, category, price, duration_minutes,
+  (business_id, slug, name, name_en, category, price, duration_minutes,
    booking_block_minutes, price_on_consultation, duration_variable, payment_method, is_active)
 VALUES
-  (public.current_business_id(),'cornrows',         'Trenzas pegadas',         'braids', 0, 180, 180, true, true, 'cash_in_person', true),
-  (public.current_business_id(),'individual_braids','Trenza individual',       'braids', 0, 180, 180, true, true, 'cash_in_person', true),
-  (public.current_business_id(),'knotless_braids',  'Trenza sin nudo',         'braids', 0, 180, 180, true, true, 'cash_in_person', true),
-  (public.current_business_id(),'micro_twists',     'Micro-twist',             'braids', 0, 180, 180, true, true, 'cash_in_person', true),
-  (public.current_business_id(),'natural_twists',   'Twist en cabello natural','braids', 0, 180, 180, true, true, 'cash_in_person', true),
-  (public.current_business_id(),'crochet_braids',   'Crochet braids',          'braids', 0, 180, 180, true, true, 'cash_in_person', true),
-  (public.current_business_id(),'wash_blowdry',     'Lavado y secado',         'hair',   0, 120, 120, true, true, 'cash_in_person', true)
+  (public.current_business_id(),'cornrows',         'Trenzas pegadas',         'Cornrows',           'braids', 0, 180, 180, true, true, 'cash_in_person', true),
+  (public.current_business_id(),'individual_braids','Trenza individual',       'Individual braids',  'braids', 0, 180, 180, true, true, 'cash_in_person', true),
+  (public.current_business_id(),'knotless_braids',  'Trenza sin nudo',         'Knotless braids',    'braids', 0, 180, 180, true, true, 'cash_in_person', true),
+  (public.current_business_id(),'micro_twists',     'Micro-twist',             'Micro twists',       'braids', 0, 180, 180, true, true, 'cash_in_person', true),
+  (public.current_business_id(),'natural_twists',   'Twist en cabello natural','Natural hair twists','braids', 0, 180, 180, true, true, 'cash_in_person', true),
+  (public.current_business_id(),'crochet_braids',   'Crochet braids',          'Crochet braids',     'braids', 0, 180, 180, true, true, 'cash_in_person', true),
+  (public.current_business_id(),'wash_blowdry',     'Lavado y secado',         'Wash and blow-dry',  'hair',   0, 120, 120, true, true, 'cash_in_person', true)
 ON CONFLICT (business_id, slug) DO UPDATE
-SET name = EXCLUDED.name, category = EXCLUDED.category, is_active = true;
+SET name = EXCLUDED.name, name_en = EXCLUDED.name_en,
+    category = EXCLUDED.category, is_active = true;
 
 -- Bloques internos EXACTOS confirmados por el negocio.
 UPDATE public.services s SET booking_block_minutes = v.mins
 FROM (VALUES
-  ('mens_haircut',60),('cornrows',180),('individual_braids',180),
+  ('haircut',60),('cornrows',180),('individual_braids',180),
   ('knotless_braids',180),('micro_twists',180),('natural_twists',180),
   ('crochet_braids',180),('wash_blowdry',120)
 ) AS v(slug, mins)
 WHERE s.business_id = public.current_business_id() AND s.slug = v.slug;
 
--- Modo comercial para TODO el catálogo activo.
+-- Modo comercial SOLO para el catálogo confirmado (Color queda intacto).
 UPDATE public.services
 SET price_on_consultation = true, duration_variable = true,
     payment_method = 'cash_in_person'
-WHERE business_id = public.current_business_id();
+WHERE business_id = public.current_business_id()
+  AND slug IN ('haircut','cornrows','individual_braids','knotless_braids',
+               'micro_twists','natural_twists','crochet_braids','wash_blowdry');
 
 -- Manicura: retirada NO destructiva. Color NO se toca.
 UPDATE public.services
 SET is_active = false
 WHERE business_id = public.current_business_id() AND slug = 'manicure';
 
+
 -- =====================================================================
--- 2. Personal real: 1 peluquera + 2 barberos
---    Se REUTILIZAN los 2 registros existentes (pro_1, pro_2) y se añade
---    el tercero con gen_random_uuid() (default de la tabla). Ningún UUID
---    escrito a mano. Los nombres son placeholders a confirmar.
+-- 2. Personal real: Brighto (barbero) + Dorra (peluquera)
+--    Auditoría previa (solo lectura) del NUEVO Supabase:
+--      pro_1 793b45a8-… -> tiene la ÚNICA cita existente (12/08/2026 10:30,
+--                          servicio cut_styling, 60 min) => es Brighto.
+--      pro_2 fa8c2f79-… -> placeholder sembrado, sin citas => se reutiliza
+--                          para Dorra (misma fila, mismo UUID, sin DELETE).
+--    Ningún UUID se escribe a mano ni se cambia. Ninguna cita se reasigna.
 -- =====================================================================
 ALTER TABLE public.staff
   ADD COLUMN IF NOT EXISTS role text NOT NULL DEFAULT 'barber';
@@ -106,44 +125,69 @@ ALTER TABLE public.staff DROP CONSTRAINT IF EXISTS staff_role_check;
 ALTER TABLE public.staff ADD CONSTRAINT staff_role_check
   CHECK (role IN ('barber', 'hairdresser'));
 
-UPDATE public.staff SET name = 'Barbero 1', role = 'barber'
+-- Brighto: conserva el UUID de pro_1 y su historial de citas.
+UPDATE public.staff
+SET slug = 'brighto', name = 'Brighto', role = 'barber', is_active = true
 WHERE business_id = public.current_business_id() AND slug = 'pro_1';
-UPDATE public.staff SET name = 'Barbero 2', role = 'barber'
+
+-- Dorra: reutiliza la fila placeholder pro_2 (sin citas). Si esa fila ya no
+-- existiera, se crea una nueva con gen_random_uuid() (default de la tabla).
+UPDATE public.staff
+SET slug = 'dorra', name = 'Dorra', role = 'hairdresser', is_active = true
 WHERE business_id = public.current_business_id() AND slug = 'pro_2';
 
 INSERT INTO public.staff (business_id, slug, name, role, is_active)
-VALUES (public.current_business_id(), 'stylist_1', 'Peluquera', 'hairdresser', true)
-ON CONFLICT (business_id, slug) DO UPDATE
-SET role = 'hairdresser', is_active = true;
+SELECT public.current_business_id(), 'dorra', 'Dorra', 'hairdresser', true
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.staff
+  WHERE business_id = public.current_business_id() AND slug = 'dorra'
+);
 
 -- ---------------------------------------------------------------
--- 2b. staff_services por competencia
---     Barberos  -> mens_haircut, wash_blowdry
---     Peluquera -> todo el catálogo activo (trenzas + corte + lavado)
+-- 2b. staff_services: matriz EXACTA confirmada por el negocio.
+--     Dorra   -> cornrows, individual_braids, knotless_braids, micro_twists,
+--                natural_twists, crochet_braids, wash_blowdry
+--     Brighto -> haircut
+--     Sin inferencias por categoría ni por "servicio activo".
 -- ---------------------------------------------------------------
 INSERT INTO public.staff_services (staff_id, service_id)
 SELECT st.id, sv.id
 FROM public.staff st
-JOIN public.services sv ON sv.business_id = st.business_id AND sv.is_active IS TRUE
+JOIN public.services sv
+  ON sv.business_id = st.business_id
+ AND (
+      (st.slug = 'dorra'   AND sv.slug IN ('cornrows','individual_braids','knotless_braids',
+                                           'micro_twists','natural_twists','crochet_braids',
+                                           'wash_blowdry'))
+   OR (st.slug = 'brighto' AND sv.slug = 'haircut')
+     )
 WHERE st.business_id = public.current_business_id()
-  AND st.is_active IS TRUE
-  AND (
-    st.role = 'hairdresser'
-    OR (st.role = 'barber' AND sv.slug IN ('mens_haircut', 'wash_blowdry'))
-  )
 ON CONFLICT DO NOTHING;
 
--- Los barberos NO ofrecen trenzas: se retira solo esa relación.
+-- Brighto no ofrece peluquería: se retira SOLO esa relación heredada del seed.
 DELETE FROM public.staff_services ss
 USING public.staff st, public.services sv
 WHERE ss.staff_id = st.id AND ss.service_id = sv.id
-  AND st.role = 'barber'
-  AND sv.category = 'braids';
+  AND st.slug = 'brighto'
+  AND sv.slug <> 'haircut'
+  AND sv.slug <> 'color';   -- Color CONGELADO: sus relaciones no se tocan.
 
--- Servicios inactivos (Manicura) fuera de la matriz de competencias.
+-- Dorra: se retiran relaciones heredadas fuera de su matriz confirmada
+-- (excepto Color, congelado hasta confirmación del negocio).
+DELETE FROM public.staff_services ss
+USING public.staff st, public.services sv
+WHERE ss.staff_id = st.id AND ss.service_id = sv.id
+  AND st.slug = 'dorra'
+  AND sv.slug NOT IN ('cornrows','individual_braids','knotless_braids',
+                      'micro_twists','natural_twists','crochet_braids',
+                      'wash_blowdry','color');
+
+-- Manicura (inactiva) fuera de la matriz de competencias. No DELETE de citas.
 DELETE FROM public.staff_services ss
 USING public.services sv
-WHERE ss.service_id = sv.id AND sv.is_active IS FALSE;
+WHERE ss.service_id = sv.id
+  AND sv.business_id = public.current_business_id()
+  AND sv.slug = 'manicure';
 
 -- =====================================================================
 -- 3. appointments: metadatos comerciales. booking_range y EXCLUDE intactos.
