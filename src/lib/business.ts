@@ -47,7 +47,7 @@ export const businessConfig: BusinessConfig = {
   businessId: "7c8f0987-88d1-4a87-87a6-68db1573b5b6",
 
 
-  businessName: "NOMBRE DEL SALÓN",
+  businessName: "Brightobarber",
   legalName: "NOMBRE DEL SALÓN LTD",
   shortName: "SALÓN",
   tagline: "Peluquería & Belleza",
@@ -72,13 +72,13 @@ export const businessConfig: BusinessConfig = {
   slotIntervalMinutes: 30,
 
   openingHours: {
-    0: { open: "10:00", close: "17:00" },
-    1: { open: "09:00", close: "19:00" },
-    2: { open: "09:00", close: "19:00" },
-    3: { open: "09:00", close: "19:00" },
-    4: { open: "09:00", close: "19:00" },
-    5: { open: "09:00", close: "19:00" },
-    6: { open: "09:00", close: "19:00" },
+    0: { open: "10:00", close: "22:00" },
+    1: { open: "10:00", close: "22:00" },
+    2: { open: "10:00", close: "22:00" },
+    3: { open: "10:00", close: "22:00" },
+    4: { open: "10:00", close: "22:00" },
+    5: { open: "10:00", close: "22:00" },
+    6: { open: "10:00", close: "22:00" },
   },
 
   logo: "/favicon.png",
