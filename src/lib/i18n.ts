@@ -198,21 +198,47 @@ export const translations = {
   },
 };
 
+// Placeholder catalogue for the new salon. The final catalogue comes later.
 export const services = [
-  { id: "buzz_cut", icon: "🪒", category: "barber", name_es: "Corte al ras", name_en: "Buzz cut", price: 14, duration: 20 },
-  { id: "kids", icon: "🧒", category: "barber", name_es: "Niños", name_en: "Kids", price: 16, duration: 25 },
-  { id: "oap", icon: "👴", category: "barber", name_es: "Jubilados mayores de 60", name_en: "OAP / Over 60s", price: 10, duration: 25 },
-  { id: "haircut", icon: "✂️", category: "barber", name_es: "Corte de pelo", name_en: "Haircut", price: 20, duration: 30 },
-  { id: "skin_fade", icon: "💈", category: "barber", name_es: "Degradado", name_en: "Skin fade", price: 22, duration: 35 },
-  { id: "beard_razor", icon: "🪒", category: "barber", name_es: "Recorte de barba con navaja", name_en: "Beard trim with razor", price: 16, duration: 25 },
-  { id: "skin_fade_beard", icon: "🧔", category: "barber", name_es: "Degradado y barba", name_en: "Skin fade and beard", price: 26, duration: 45 },
-  { id: "beard_trim", icon: "🧔", category: "barber", name_es: "Recorte de barba", name_en: "Beard trim", price: 6, duration: 15 },
-  { id: "eyebrow_waxing", icon: "🎨", category: "barber", name_es: "Depilación de cejas", name_en: "Eyebrow waxing", price: 5, duration: 15 },
-  { id: "mens_eyebrows", icon: "👁️", category: "barber", name_es: "Cejas hombre", name_en: "Men's eyebrows", price: 2, duration: 10 },
-  { id: "royal_vip", icon: "⭐", category: "barber", name_es: "Servicio VIP completo ROYAL", name_en: "ROYAL Full VIP Service", price: 36, duration: 60 },
+  {
+    id: "cut_styling",
+    icon: "✂️",
+    category: "hair",
+    name_es: "Corte y peinado",
+    name_en: "Cut & styling",
+    category_es: "Peluquería",
+    category_en: "Hair",
+    price: 35,
+    duration: 60,
+  },
+  {
+    id: "color",
+    icon: "🎨",
+    category: "hair",
+    name_es: "Color",
+    name_en: "Colour",
+    category_es: "Color",
+    category_en: "Colour",
+    price: 65,
+    duration: 120,
+  },
+  {
+    id: "manicure",
+    icon: "💅",
+    category: "beauty",
+    name_es: "Manicura",
+    name_en: "Manicure",
+    category_es: "Belleza",
+    category_en: "Beauty",
+    price: 30,
+    duration: 60,
+  },
 ];
 
-export const barberProfessionals = ["Junior"];
-export const hairProfessionals: string[] = [];
+// Single source of truth for professionals (home, booking, assistant, admin).
+export const professionals = ["Profesional 1", "Profesional 2"];
 
-export const barbers = ["Junior"];
+// Aliases kept so existing category-based lookups keep working.
+export const barberProfessionals = professionals;
+export const hairProfessionals = professionals;
+export const barbers = professionals;
