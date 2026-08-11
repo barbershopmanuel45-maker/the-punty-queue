@@ -432,6 +432,16 @@ function Services({
           subtitle={t.services.subtitle}
         />
 
+        <div className="mt-10 rounded-3xl overflow-hidden shadow-card">
+          <img
+            src={hero}
+            alt={businessConfig.businessName}
+            loading="lazy"
+            className="w-full h-56 md:h-80 object-cover"
+          />
+        </div>
+
+
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-12">
           {services.map((s) => (
             <div
