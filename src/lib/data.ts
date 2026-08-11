@@ -53,9 +53,9 @@ export type ReminderUI = {
   business_id?: string | null;
 };
 
-const BK = "elpunty_bookings";
-const WK = "elpunty_queue";
-const BIZ_KEY = "elpunty_business_id";
+const BK = storageKey("bookings");
+const WK = storageKey("queue");
+
 
 export type Source = "supabase" | "localStorage";
 
