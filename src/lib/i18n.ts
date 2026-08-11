@@ -286,3 +286,110 @@ export const professionals = ["Profesional 1", "Profesional 2"];
 export const barberProfessionals = professionals;
 export const hairProfessionals = professionals;
 export const barbers = professionals;
+/**
+ * Visual braiding/hairstyle catalogue.
+ * IMPORTANT: these entries are VISUAL ONLY. They are not part of the
+ * bookable catalogue (public.services) yet, so `bookable` stays false
+ * until each one is created in Supabase with a real price, duration and
+ * staff_services association. Nothing here is ever sent to create_booking.
+ */
+export type StyleShowcaseItem = {
+  id: string;
+  image: string;
+  bookable: false;
+  name_es: string;
+  name_en: string;
+  desc_es: string;
+  desc_en: string;
+  alt_es: string;
+  alt_en: string;
+};
+
+export const styleShowcase: StyleShowcaseItem[] = [
+  {
+    id: "cornrows",
+    image: "cornrows-grid",
+    bookable: false,
+    name_es: "Trenzas pegadas",
+    name_en: "Cornrows",
+    desc_es:
+      "Trenzas pegadas al cuero cabelludo con diseños limpios y personalizados.",
+    desc_en: "Close-to-scalp braids with clean, personalised patterns.",
+    alt_es: "Ejemplo de trenzas pegadas",
+    alt_en: "Cornrows hairstyle example",
+  },
+  {
+    id: "individual_braids",
+    image: "feedin-braids",
+    bookable: false,
+    name_es: "Trenza individual",
+    name_en: "Individual braids",
+    desc_es:
+      "Trenzas individuales versátiles disponibles en diferentes largos y estilos.",
+    desc_en:
+      "Versatile individual braids available in different lengths and styles.",
+    alt_es: "Ejemplo de trenzas individuales largas",
+    alt_en: "Long individual braids hairstyle example",
+  },
+  {
+    id: "knotless_braids",
+    image: "knotless-colour",
+    bookable: false,
+    name_es: "Trenza sin nudo",
+    name_en: "Knotless braids",
+    desc_es: "Trenzas sin nudo con acabado ligero, natural y cómodo.",
+    desc_en:
+      "Lightweight knotless braids with a natural and comfortable finish.",
+    alt_es: "Ejemplo de trenzas sin nudo con extensiones de color",
+    alt_en: "Knotless braids with coloured extensions example",
+  },
+  {
+    id: "micro_twists",
+    image: "box-braids",
+    bookable: false,
+    name_es: "Micro-twist",
+    name_en: "Micro twists",
+    desc_es: "Twists finos y definidos para un acabado elegante y duradero.",
+    desc_en: "Fine, defined twists for an elegant and long-lasting finish.",
+    alt_es: "Ejemplo de micro-twists y trenzas finas",
+    alt_en: "Micro twists and fine braids example",
+  },
+  {
+    id: "natural_twists",
+    image: "cornrows-bun",
+    bookable: false,
+    name_es: "Twist en cabello natural",
+    name_en: "Natural hair twists",
+    desc_es:
+      "Twists realizados sobre cabello natural para definir, proteger y estilizar.",
+    desc_en: "Twists created on natural hair to define, protect and style.",
+    alt_es: "Ejemplo de peinado con twists sobre cabello natural",
+    alt_en: "Natural hair twists hairstyle example",
+  },
+  {
+    id: "crochet_braids",
+    image: "crochet-curly",
+    bookable: false,
+    name_es: "Crochet braids",
+    name_en: "Crochet braids",
+    desc_es:
+      "Instalación de crochet braids con diferentes texturas, largos y estilos.",
+    desc_en:
+      "Crochet braid installation available in different textures, lengths and styles.",
+    alt_es: "Ejemplo de crochet braids con textura rizada",
+    alt_en: "Crochet braids with curly texture example",
+  },
+  {
+    id: "wash_blowdry",
+    image: "salon",
+    bookable: false,
+    name_es: "Lavado y secado",
+    name_en: "Wash and blow-dry",
+    desc_es:
+      "Lavado profesional y secado para dejar el cabello limpio, suave y preparado.",
+    desc_en:
+      "Professional wash and blow-dry for clean, soft and styled hair.",
+    alt_es: "Interior del salón Brightobarber",
+    alt_en: "Brightobarber salon interior",
+  },
+];
