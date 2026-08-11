@@ -10,7 +10,13 @@ import {
   formatOpeningHours,
   getOpeningWindow,
 } from "@/lib/business";
-import { createBooking, createWalkin, listBookings } from "@/lib/data";
+import {
+  createBooking,
+  createWalkin,
+  isSlotTakenError,
+  listBookings,
+} from "@/lib/data";
+
 
 type Msg = {
   role: "bot" | "user";
