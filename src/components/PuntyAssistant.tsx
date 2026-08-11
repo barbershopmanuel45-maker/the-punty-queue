@@ -2,10 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import logo from "@/assets/logo.png";
 import {
   services,
-  barberProfessionals,
-  hairProfessionals,
+  professionals as allProfessionals,
   type Lang,
 } from "@/lib/i18n";
+import {
+  businessConfig,
+  formatOpeningHours,
+  getOpeningWindow,
+} from "@/lib/business";
 import { createBooking, createWalkin, listBookings } from "@/lib/data";
 
 type Msg = {
@@ -32,10 +36,10 @@ type Step =
 
 const T = {
   es: {
-    title: "JuniorFADE Assistant",
+    title: businessConfig.assistantName,
     online: "En línea",
     placeholder: "Escribe un mensaje...",
-    initial: "Hola, soy el asistente de JuniorFADEfactory. ¿En qué puedo ayudarte?",
+    initial: `Hola, soy el asistente de ${businessConfig.businessName}. ¿En qué puedo ayudarte?`,
     quick: ["Reservar", "Cancelar", "Walk-in"],
     menu: "Puedo ayudarte con: reservar, cancelar o entrar en walk-in.",
     askName: "Perfecto. ¿Cuál es tu nombre?",
@@ -44,12 +48,13 @@ const T = {
     askService: "¿Qué servicio quieres?\n\n{list}\n\nResponde con el número.",
     askBarber: "¿Con quién quieres reservar?\n\n{list}\n\nResponde con el número.",
     askDate: "¿Qué fecha? (formato YYYY-MM-DD)",
-    askTime:
-      "¿A qué hora? (HH:MM)\n\nLun-Sáb: 09:00–19:00\nDomingo: solo con reserva 10:00–17:00",
+    askTime: `¿A qué hora? (HH:MM)\n\nLun-Sáb: ${formatOpeningHours(
+      1,
+    )}\nDomingo: solo con reserva ${formatOpeningHours(0)}`,
     confirm:
       "✅ ¡Reserva confirmada!\n\n{n} — {s}\n📅 {d} a las {t}\n💈 Profesional: {b}\n📧 {e}\n💷 £{p}",
     cancelInfo:
-      "Para cancelar o modificar una reserva, contacta directamente con JuniorFADEfactory.",
+      `Para cancelar o modificar una reserva, contacta directamente con ${businessConfig.businessName}.`,
     walkinAsk: "¿Tu nombre para la cola?",
     walkinJoined: "✅ ¡Estás en la cola! Espera estimada ~{w} min.",
     servicesList: "Nuestros servicios:\n\n{list}",
@@ -58,8 +63,9 @@ const T = {
     invalidPhone: "Introduce un móvil UK válido. Ejemplo: 07788998899",
     invalidEmail: "Introduce un email válido.",
     pastDate: "No puedes reservar una fecha pasada.",
-    closedTime:
-      "Horario no disponible. Lunes a sábado 09:00–19:00. Domingos 10:00–17:00.",
+    closedTime: `Horario no disponible. Lunes a sábado ${formatOpeningHours(
+      1,
+    )}. Domingos ${formatOpeningHours(0)}.`,
     doubleBooking: "Ese horario ya no está disponible. Elige otro.",
     noProfessionalAvailable: "Ese horario ya no está disponible. Elige otro.",
     sundayWalkin: "Los domingos solo atendemos con reserva previa.",
@@ -67,10 +73,10 @@ const T = {
   },
 
   en: {
-    title: "JuniorFADE Assistant",
+    title: businessConfig.assistantName,
     online: "Online",
     placeholder: "Type a message...",
-    initial: "Hi, I'm the JuniorFADEfactory assistant. How can I help you?",
+    initial: `Hi, I'm the ${businessConfig.businessName} assistant. How can I help you?`,
     quick: ["Book", "Cancel", "Walk-in"],
     menu: "I can help with: book, cancel or join the walk-in queue.",
     askName: "Great. What's your name?",
@@ -80,12 +86,13 @@ const T = {
     askBarber:
       "Who would you like to book with?\n\n{list}\n\nReply with the number.",
     askDate: "Which date? (YYYY-MM-DD)",
-    askTime:
-      "What time? (HH:MM)\n\nMon-Sat: 09:00–19:00\nSunday: booking only 10:00–17:00",
+    askTime: `What time? (HH:MM)\n\nMon-Sat: ${formatOpeningHours(
+      1,
+    )}\nSunday: booking only ${formatOpeningHours(0)}`,
     confirm:
       "✅ Booking confirmed!\n\n{n} — {s}\n📅 {d} at {t}\n💈 Professional: {b}\n📧 {e}\n💷 £{p}",
     cancelInfo:
-      "To cancel or modify a booking, contact JuniorFADEfactory directly.",
+      `To cancel or modify a booking, contact ${businessConfig.businessName} directly.`,
     walkinAsk: "Your name for the queue?",
     walkinJoined: "✅ You're in the queue! Estimated wait ~{w} min.",
     servicesList: "Our services:\n\n{list}",
@@ -94,8 +101,9 @@ const T = {
     invalidPhone: "Enter a valid UK mobile. Example: 07788998899",
     invalidEmail: "Enter a valid email.",
     pastDate: "You cannot book a past date.",
-    closedTime:
-      "Time not available. Monday-Saturday 09:00–19:00. Sundays 10:00–17:00.",
+    closedTime: `Time not available. Monday-Saturday ${formatOpeningHours(
+      1,
+    )}. Sundays ${formatOpeningHours(0)}.`,
     doubleBooking: "That time is no longer available. Please choose another.",
     noProfessionalAvailable: "That time is no longer available. Please choose another.",
     sundayWalkin: "Sundays are booking only. Walk-ins unavailable.",
@@ -155,13 +163,14 @@ function normalizeTime(time: string) {
 }
 
 function isValidOpeningTime(date: string, time: string, duration: number) {
-  const day = getDayOfWeek(date);
+  const window = getOpeningWindow(getDayOfWeek(date));
+
+  if (!window) return false;
+
   const start = timeToMinutes(time);
   const end = start + duration;
 
-  if (day === 0) return start >= 10 * 60 && end <= 17 * 60;
-
-  return start >= 9 * 60 && end <= 19 * 60;
+  return start >= window.start && end <= window.end;
 }
 
 function isSunday(date: string) {
@@ -172,12 +181,8 @@ function isActiveBooking(status?: string) {
   return status === "confirmed" || status === "pending";
 }
 
-function isHairService(service: (typeof services)[0]) {
-  return service.category === "hair";
-}
-
-function staffForService(service: (typeof services)[0]) {
-  return isHairService(service) ? hairProfessionals : barberProfessionals;
+function staffForService(_service: (typeof services)[0]) {
+  return allProfessionals;
 }
 
 function bookingOverlaps(
@@ -601,12 +606,12 @@ export default function PuntyAssistant({
   barber: finalProfessional,
   date: d.date,
   time: d.time,
-  comments: "Reserva creada desde JuniorFADE Assistant",
+  comments: `Reserva creada desde ${businessConfig.assistantName}`,
   price: d.service.price,
   duration: d.service.duration,
   createdAt: Date.now(),
   status: "confirmed" as const,
-  business_id: "5d0b411f-8af5-42c6-9a1b-505d3b162bed",
+  business_id: businessConfig.businessId,
 };
 
         await createBooking(booking);
@@ -700,7 +705,7 @@ export default function PuntyAssistant({
       <button
         onClick={() => setOpen((o) => !o)}
         className="fixed bottom-5 right-5 z-50 w-16 h-16 rounded-full shadow-soft bg-gradient-brand flex items-center justify-center hover:scale-110 transition group"
-        aria-label="JuniorFADE Assistant"
+        aria-label={businessConfig.assistantName}
       >
         {open ? (
           <span className="text-white text-2xl">×</span>
