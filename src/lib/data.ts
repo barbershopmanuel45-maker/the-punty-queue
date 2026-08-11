@@ -305,7 +305,7 @@ let cataloguePromise: Promise<{
 export function loadCatalogue() {
   if (!cataloguePromise) {
     cataloguePromise = (async () => {
-      const [svc, stf] = await Promise.all([
+      const [svc, stf, link] = await Promise.all([
         supabase
           .from("services")
           .select(
@@ -313,26 +313,43 @@ export function loadCatalogue() {
           )
           .eq("is_active", true),
         supabase.from("staff").select("id, slug, name").eq("is_active", true),
+        supabase.from("staff_services").select("staff_id, service_id"),
       ]);
 
       if (svc.error) throw svc.error;
       if (stf.error) throw stf.error;
+      if (link.error) throw link.error;
 
-      return {
-        services: (svc.data || []).map((r: any) => ({
-          id: r.id,
-          slug: r.slug,
-          name: r.name,
-          price: r.price_on_consultation ? null : Number(r.price) || null,
-          duration:
-            Number(r.booking_block_minutes) || Number(r.duration_minutes) || 30,
-        })),
-        staff: (stf.data || []).map((r: any) => ({
-          id: r.id,
-          slug: r.slug,
-          name: r.name,
-        })),
-      };
+      const services: CatalogueService[] = (svc.data || []).map((r: any) => ({
+        id: r.id,
+        slug: r.slug,
+        name: r.name,
+        price: r.price_on_consultation ? null : Number(r.price) || null,
+        duration:
+          Number(r.booking_block_minutes) || Number(r.duration_minutes) || 30,
+      }));
+
+      const staff: CatalogueStaff[] = (stf.data || []).map((r: any) => ({
+        id: r.id,
+        slug: r.slug,
+        name: r.name,
+      }));
+
+      const staffById = new Map(staff.map((s) => [s.id, s]));
+      const staffByService: Record<string, CatalogueStaff[]> = {};
+
+      for (const service of services) staffByService[service.slug] = [];
+
+      for (const row of (link.data || []) as any[]) {
+        const service = services.find((s) => s.id === row.service_id);
+        const member = staffById.get(row.staff_id);
+        if (!service || !member) continue;
+        const list = staffByService[service.slug];
+        if (!list.some((s) => s.id === member.id)) list.push(member);
+      }
+
+      return { services, staff, staffByService };
+
     })().catch((e) => {
       cataloguePromise = null;
       throw e;
