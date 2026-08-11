@@ -259,6 +259,7 @@ DECLARE
   _biz        uuid := public.current_business_id();
   _svc        public.services%ROWTYPE;
   _block      integer;
+  _price      numeric;
   _tz text; _status text; _slot integer;
   _start timestamp; _end timestamp; _local_now timestamp;
   _hours public.business_hours%ROWTYPE;
