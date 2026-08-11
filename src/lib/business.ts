@@ -23,6 +23,7 @@ export type BusinessConfig = {
   city: string;
   postcode: string;
   address: string;
+  country: string;
   phone: string;
   email: string;
   whatsapp: string;
@@ -57,6 +58,7 @@ export const businessConfig: BusinessConfig = {
   city: "London",
   postcode: "SE15 1JB",
   address: "624 Old Kent Road",
+  country: "United Kingdom",
 
 
   phone: "+00 000 000 000",
