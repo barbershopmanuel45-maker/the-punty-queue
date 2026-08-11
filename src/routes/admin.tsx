@@ -2,7 +2,12 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 
 import { supabase } from "../lib/supabase";
-import { businessConfig, formatPrice } from "../lib/business";
+import {
+  businessConfig,
+  formatPrice,
+  formatServicePrice,
+  pricingCopy,
+} from "../lib/business";
 import { services as catalogueServices, professionals } from "../lib/i18n";
 
 export const Route = createFileRoute("/admin")({
@@ -18,6 +23,10 @@ type AppointmentRow = {
   service_name?: string | null;
   service?: string | null;
   service_price?: number | null;
+  agreed_price?: number | null;
+  price_pending?: boolean | null;
+  duration_is_estimate?: boolean | null;
+  payment_method?: string | null;
   service_duration?: number | null;
   barber?: string | null;
   appointment_date?: string | null;
@@ -125,6 +134,9 @@ function AdminPage() {
       service_name: item.service_name || item.service || "",
       service_price:
         typeof item.service_price === "number" ? item.service_price : null,
+      agreed_price:
+        typeof item.agreed_price === "number" ? item.agreed_price : null,
+      price_pending: item.price_pending ?? null,
       service_duration:
         typeof item.service_duration === "number" ? item.service_duration : null,
       barber: item.barber || "",
@@ -183,10 +195,12 @@ function AdminPage() {
       return;
     }
 
+    // The agreed price is the source of truth. service_price stays as the
+    // original snapshot and is never overwritten from the admin panel.
     const priceNum =
-      editForm.service_price === null || editForm.service_price === undefined || (editForm.service_price as any) === ""
+      editForm.agreed_price === null || editForm.agreed_price === undefined || (editForm.agreed_price as any) === ""
         ? null
-        : Number(editForm.service_price);
+        : Number(editForm.agreed_price);
     const durationNum =
       editForm.service_duration === null || editForm.service_duration === undefined || (editForm.service_duration as any) === ""
         ? null
@@ -210,7 +224,11 @@ function AdminPage() {
           phone: editForm.phone || "",
           email: editForm.email || "",
           service_name: editForm.service_name || "",
-          service_price: priceNum,
+          agreed_price: priceNum,
+          price_pending:
+            priceNum === null &&
+            (editing.service_price === null ||
+              editing.service_price === undefined),
           service_duration: durationNum,
           barber: editForm.barber || "",
           appointment_date: date || null,
@@ -332,7 +350,7 @@ function AdminPage() {
     const { data: appointmentsData, error: appointmentsError } = await supabase
       .from("appointments")
       .select(
-        "id, customer_name, phone, email, service_name, service_price, service_duration, barber, appointment_date, appointment_time, status, created_at"
+        "id, customer_name, phone, email, service_name, service_price, agreed_price, price_pending, duration_is_estimate, payment_method, service_duration, barber, appointment_date, appointment_time, status, created_at"
       )
       .order("appointment_date", { ascending: false });
 
@@ -471,29 +489,26 @@ function AdminPage() {
     return item.service_name || item.service || "Servicio";
   }
 
-  function getServicePrice(item: AppointmentRow) {
-    const price = item.service_price;
+  /**
+   * Revenue truth table:
+   *  - agreed_price when present.
+   *  - legacy rows (price_pending = false) fall back to service_price.
+   *  - price_pending rows contribute nothing and are never shown as 0.
+   */
+  function getNumericPrice(item: AppointmentRow) {
+    if (typeof item.agreed_price === "number") return item.agreed_price;
+    if (item.price_pending) return null;
+    if (typeof item.service_price === "number") return item.service_price;
 
-    if (typeof price === "number") return formatPrice(price);
-
-    const match = SERVICES.find(
-      (service) =>
-        service.name.toLowerCase() === getServiceName(item).toLowerCase()
-    );
-
-    return match ? formatPrice(match.price) : "—";
+    return null;
   }
 
-  function getNumericPrice(item: AppointmentRow) {
-    const price = item.service_price;
-    if (typeof price === "number") return price;
+  function getServicePrice(item: AppointmentRow) {
+    const value = getNumericPrice(item);
 
-    const match = SERVICES.find(
-      (service) =>
-        service.name.toLowerCase() === getServiceName(item).toLowerCase()
-    );
+    if (value === null) return pricingCopy.es.onConsultation;
 
-    return match ? match.price : null;
+    return formatPrice(value.toFixed(2));
   }
 
   function getServiceDuration(item: AppointmentRow) {
@@ -585,7 +600,8 @@ function AdminPage() {
         const status = String(item.status || "confirmed").toLowerCase();
         if (status === "cancelled") return sum;
         const price = getNumericPrice(item);
-        return sum + (price || 0);
+        if (price === null) return sum;
+        return sum + price;
       }, 0),
     [appointments]
   );
@@ -946,10 +962,13 @@ function AdminPage() {
               <div key={service.name} className="rounded-xl border bg-white p-4">
                 <h3 className="font-bold">{service.name}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Duración: {service.duration} minutos
+                  {pricingCopy.es.durationVaries}
                 </p>
                 <p className="mt-2 text-xl font-bold text-brand-blue">
-                  {formatPrice(service.price)}
+                  {formatServicePrice(service.price, "es")}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {pricingCopy.es.cash} · Bloque de agenda: {service.duration} min
                 </p>
               </div>
             ))}
@@ -1144,7 +1163,7 @@ function AdminPage() {
                     setEditForm({
                       ...editForm,
                       service_name: name,
-                      service_price: match ? match.price : editForm.service_price,
+                      service_price: editForm.service_price,
                       service_duration: match
                         ? match.duration
                         : editForm.service_duration,
@@ -1168,18 +1187,19 @@ function AdminPage() {
 
               <div>
                 <label className="mb-1 block text-sm font-semibold">
-                  Precio / Price
+                  Precio acordado / Agreed price
                 </label>
                 <input
                   type="number"
                   min={0}
                   step={1}
+                  placeholder={pricingCopy.es.onConsultation}
                   className="w-full rounded-lg border p-2"
-                  value={editForm.service_price ?? ""}
+                  value={editForm.agreed_price ?? ""}
                   onChange={(e) =>
                     setEditForm({
                       ...editForm,
-                      service_price:
+                      agreed_price:
                         e.target.value === "" ? null : Number(e.target.value),
                     })
                   }
