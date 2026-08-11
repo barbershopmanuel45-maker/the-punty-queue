@@ -54,45 +54,61 @@ COMMENT ON COLUMN public.services.booking_block_minutes IS
 
 -- ---------------------------------------------------------------
 -- 1b. Catálogo final. cut_styling se renombra (conserva UUID e historial).
+--     Denominación INCLUSIVA: "Corte de cabello" / "Haircut" (Brighto atiende
+--     caballeros y también señoras según el tipo de corte).
 -- ---------------------------------------------------------------
+ALTER TABLE public.services
+  ADD COLUMN IF NOT EXISTS description_es text,
+  ADD COLUMN IF NOT EXISTS description_en text,
+  ADD COLUMN IF NOT EXISTS name_en text;
+
 UPDATE public.services
-SET slug = 'mens_haircut', name = 'Corte de cabello para hombres',
-    category = 'barber', is_active = true
-WHERE business_id = public.current_business_id() AND slug = 'cut_styling';
+SET slug = 'haircut',
+    name = 'Corte de cabello',
+    name_en = 'Haircut',
+    category = 'barber',
+    is_active = true,
+    description_es = 'Corte de cabello realizado por Brighto. Servicio disponible para caballeros y también para señoras según el tipo de corte solicitado.',
+    description_en = 'Haircut by Brighto. Available for men and also for women depending on the requested haircut style.'
+WHERE business_id = public.current_business_id() AND slug IN ('cut_styling', 'mens_haircut');
 
 INSERT INTO public.services
-  (business_id, slug, name, category, price, duration_minutes,
+  (business_id, slug, name, name_en, category, price, duration_minutes,
    booking_block_minutes, price_on_consultation, duration_variable, payment_method, is_active)
 VALUES
-  (public.current_business_id(),'cornrows',         'Trenzas pegadas',         'braids', 0, 180, 180, true, true, 'cash_in_person', true),
-  (public.current_business_id(),'individual_braids','Trenza individual',       'braids', 0, 180, 180, true, true, 'cash_in_person', true),
-  (public.current_business_id(),'knotless_braids',  'Trenza sin nudo',         'braids', 0, 180, 180, true, true, 'cash_in_person', true),
-  (public.current_business_id(),'micro_twists',     'Micro-twist',             'braids', 0, 180, 180, true, true, 'cash_in_person', true),
-  (public.current_business_id(),'natural_twists',   'Twist en cabello natural','braids', 0, 180, 180, true, true, 'cash_in_person', true),
-  (public.current_business_id(),'crochet_braids',   'Crochet braids',          'braids', 0, 180, 180, true, true, 'cash_in_person', true),
-  (public.current_business_id(),'wash_blowdry',     'Lavado y secado',         'hair',   0, 120, 120, true, true, 'cash_in_person', true)
+  (public.current_business_id(),'cornrows',         'Trenzas pegadas',         'Cornrows',           'braids', 0, 180, 180, true, true, 'cash_in_person', true),
+  (public.current_business_id(),'individual_braids','Trenza individual',       'Individual braids',  'braids', 0, 180, 180, true, true, 'cash_in_person', true),
+  (public.current_business_id(),'knotless_braids',  'Trenza sin nudo',         'Knotless braids',    'braids', 0, 180, 180, true, true, 'cash_in_person', true),
+  (public.current_business_id(),'micro_twists',     'Micro-twist',             'Micro twists',       'braids', 0, 180, 180, true, true, 'cash_in_person', true),
+  (public.current_business_id(),'natural_twists',   'Twist en cabello natural','Natural hair twists','braids', 0, 180, 180, true, true, 'cash_in_person', true),
+  (public.current_business_id(),'crochet_braids',   'Crochet braids',          'Crochet braids',     'braids', 0, 180, 180, true, true, 'cash_in_person', true),
+  (public.current_business_id(),'wash_blowdry',     'Lavado y secado',         'Wash and blow-dry',  'hair',   0, 120, 120, true, true, 'cash_in_person', true)
 ON CONFLICT (business_id, slug) DO UPDATE
-SET name = EXCLUDED.name, category = EXCLUDED.category, is_active = true;
+SET name = EXCLUDED.name, name_en = EXCLUDED.name_en,
+    category = EXCLUDED.category, is_active = true;
 
 -- Bloques internos EXACTOS confirmados por el negocio.
 UPDATE public.services s SET booking_block_minutes = v.mins
 FROM (VALUES
-  ('mens_haircut',60),('cornrows',180),('individual_braids',180),
+  ('haircut',60),('cornrows',180),('individual_braids',180),
   ('knotless_braids',180),('micro_twists',180),('natural_twists',180),
   ('crochet_braids',180),('wash_blowdry',120)
 ) AS v(slug, mins)
 WHERE s.business_id = public.current_business_id() AND s.slug = v.slug;
 
--- Modo comercial para TODO el catálogo activo.
+-- Modo comercial SOLO para el catálogo confirmado (Color queda intacto).
 UPDATE public.services
 SET price_on_consultation = true, duration_variable = true,
     payment_method = 'cash_in_person'
-WHERE business_id = public.current_business_id();
+WHERE business_id = public.current_business_id()
+  AND slug IN ('haircut','cornrows','individual_braids','knotless_braids',
+               'micro_twists','natural_twists','crochet_braids','wash_blowdry');
 
 -- Manicura: retirada NO destructiva. Color NO se toca.
 UPDATE public.services
 SET is_active = false
 WHERE business_id = public.current_business_id() AND slug = 'manicure';
+
 
 -- =====================================================================
 -- 2. Personal real: 1 peluquera + 2 barberos
