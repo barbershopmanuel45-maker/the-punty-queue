@@ -867,6 +867,11 @@ export default function PuntyAssistant({
           hairNotes: d.notes,
         });
 
+        // "Request received" to the client + notice to the salon.
+        await notifyConsultation(created.id, lang);
+
+
+
         push({
           role: "bot",
           text: tt.consultSent
