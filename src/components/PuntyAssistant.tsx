@@ -409,7 +409,16 @@ export default function PuntyAssistant({
     }
 
     if (step.name === "book") return handleBook(text);
+    if (step.name === "consult") return handleConsult(text);
     if (step.name === "walkin_name") return handleWalkin(text);
+
+    if (
+      /(consultar precio|discuss price|consulta de precio|price and time|presupuesto|quote)/.test(
+        low,
+      )
+    ) {
+      return startConsult();
+    }
 
     if (/^(reservar|book|booking|reserva)/.test(low)) return startBook();
 
@@ -707,6 +716,165 @@ export default function PuntyAssistant({
         });
       }
 
+    }
+  };
+
+  // ---------- Consultation (price/time negotiation, never a booking) ----------
+
+  const consultServices = services.filter((s) =>
+    CONSULTATION_SLUGS.includes(s.id),
+  );
+
+  const startConsult = () => {
+    setStep({ name: "consult", field: "service", data: {} });
+
+    const list = consultServices
+      .map((s, i) => `${i + 1}. ${serviceName(s)}`)
+      .join("\n");
+
+    push([
+      { role: "bot", text: tt.consultIntro },
+      { role: "bot", text: tt.consultService.replace("{list}", list) },
+    ]);
+  };
+
+  const handleConsult = async (text: string) => {
+    if (step.name !== "consult") return;
+
+    const d = { ...step.data };
+    const value = text.trim();
+    const skipped = /^(no|nada|none|skip)$/i.test(value);
+
+    const go = (field: any, msg: string) => {
+      setStep({ name: "consult", field, data: d });
+      push({ role: "bot", text: msg });
+    };
+
+    if (step.field === "service") {
+      const idx = parseInt(value, 10) - 1;
+
+      if (isNaN(idx) || !consultServices[idx]) {
+        return push({ role: "bot", text: tt.invalid });
+      }
+
+      d.service = consultServices[idx];
+      return go("date", tt.consultDate);
+    }
+
+    if (step.field === "date") {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return push({ role: "bot", text: tt.invalid });
+      }
+
+      if (value < getTodayIso()) {
+        return push({ role: "bot", text: tt.pastDate });
+      }
+
+      d.date = value;
+      return go("time", tt.consultTime);
+    }
+
+    if (step.field === "time") {
+      if (!/^\d{2}:\d{2}$/.test(value)) {
+        return push({ role: "bot", text: tt.invalid });
+      }
+
+      d.time = value;
+      return go("alt", tt.consultAlt);
+    }
+
+    if (step.field === "alt") {
+      if (!skipped && !/^\d{2}:\d{2}$/.test(value)) {
+        return push({ role: "bot", text: tt.invalid });
+      }
+
+      d.altTime = skipped ? null : value;
+      return go("quote", tt.consultQuote);
+    }
+
+    if (step.field === "quote") {
+      if (value === "1") {
+        d.wantsProQuote = true;
+        return go("name", tt.consultName);
+      }
+
+      if (value === "2") {
+        d.wantsProQuote = false;
+        return go("budget", tt.consultBudget);
+      }
+
+      return push({ role: "bot", text: tt.invalid });
+    }
+
+    if (step.field === "budget") {
+      const amount = Number(value.replace(/[^0-9.]/g, ""));
+
+      if (!amount || Number.isNaN(amount)) {
+        return push({ role: "bot", text: tt.invalid });
+      }
+
+      d.budget = amount;
+      return go("name", tt.consultName);
+    }
+
+    if (step.field === "name") {
+      if (!value) return push({ role: "bot", text: tt.invalid });
+
+      d.name = value;
+      return go("phone", tt.consultPhone);
+    }
+
+    if (step.field === "phone") {
+      if (!isValidUkMobile(value)) {
+        return push({ role: "bot", text: tt.invalidPhone });
+      }
+
+      d.phone = normalizeUkMobile(value);
+      return go("email", tt.consultEmail);
+    }
+
+    if (step.field === "email") {
+      if (!skipped && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        return push({ role: "bot", text: tt.invalidEmail });
+      }
+
+      d.email = skipped ? null : value.toLowerCase();
+      return go("notes", tt.consultNotes);
+    }
+
+    if (step.field === "notes") {
+      d.notes = skipped ? null : value;
+
+      setStep({ name: "idle" });
+
+      try {
+        await requestConsultation({
+          name: d.name,
+          phone: d.phone,
+          email: d.email,
+          serviceSlug: d.service.id,
+          preferredDate: d.date,
+          preferredTime: d.time,
+          altDate: d.altTime ? d.date : null,
+          altTime: d.altTime,
+          proposedPrice: d.wantsProQuote ? null : d.budget,
+          wantsProQuote: Boolean(d.wantsProQuote),
+          hairNotes: d.notes,
+        });
+
+        push({
+          role: "bot",
+          text: tt.consultSent
+            .replace("{s}", serviceName(d.service))
+            .replace("{d}", d.date)
+            .replace("{t}", d.time),
+          quick: tt.quick,
+        });
+      } catch (error) {
+        console.error("[assistant] consultation failed", error);
+
+        push({ role: "bot", text: tt.consultError, quick: tt.quick });
+      }
     }
   };
 
