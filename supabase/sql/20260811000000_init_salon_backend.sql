@@ -7,6 +7,41 @@
 -- =====================================================================
 
 -- ---------------------------------------------------------------
+-- 0. PREFLIGHT GUARD
+--    CREATE TABLE IF NOT EXISTS only checks pg_class by NAME, so a VIEW,
+--    MATERIALIZED VIEW, FOREIGN TABLE or SEQUENCE with one of our names is
+--    silently "skipped" and the script keeps going until CREATE INDEX /
+--    ALTER TABLE fails with a confusing 42809. Fail loudly and early instead.
+-- ---------------------------------------------------------------
+DO $$
+DECLARE
+  r record;
+  bad text[] := '{}';
+BEGIN
+  FOR r IN
+    SELECT c.relname, c.relkind
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'
+      AND c.relname IN (
+        'profiles', 'user_roles', 'appointments',
+        'walkins', 'reminders', 'reviews'
+      )
+      AND c.relkind <> 'r'
+  LOOP
+    bad := bad || format('%s (relkind=%s)', r.relname, r.relkind);
+  END LOOP;
+
+  IF array_length(bad, 1) > 0 THEN
+    RAISE EXCEPTION
+      'Migration aborted: these public relations exist but are NOT regular tables: %. Drop or rename them first (see supabase/sql/00_repair_user_roles.sql).',
+      array_to_string(bad, ', ');
+  END IF;
+
+END $$;
+
+
+-- ---------------------------------------------------------------
 -- 1. Types
 -- ---------------------------------------------------------------
 DO $$
