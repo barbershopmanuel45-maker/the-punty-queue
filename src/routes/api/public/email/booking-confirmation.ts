@@ -1,3 +1,4 @@
+import type {} from "@tanstack/react-start";
 // Booking confirmation email (client) + notice to the business.
 // Public endpoint on purpose: the booking form runs anonymously.
 // It only accepts an appointment id, reads the row server-side with the

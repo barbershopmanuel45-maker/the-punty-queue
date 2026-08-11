@@ -1,3 +1,4 @@
+import type {} from "@tanstack/react-start";
 // Consultation request: notice to the business + "request received" to the
 // client (never presented as a confirmed booking). Idempotent via notified_at.
 import { createFileRoute } from "@tanstack/react-router";
