@@ -243,39 +243,118 @@ export const translations = {
 };
 
 // Placeholder catalogue for the new salon. The final catalogue comes later.
-export const services = [
+export type CatalogueEntry = {
+  id: string;
+  icon: string;
+  category: "hair" | "braids" | "barber";
+  name_es: string;
+  name_en: string;
+  category_es: string;
+  category_en: string;
+  /** null = price on consultation. Never render as 0. */
+  price: number | null;
+  /** Internal agenda block (booking_block_minutes), not a promised duration. */
+  duration: number;
+  durationVariable: boolean;
+};
+
+// Real catalogue. Slugs match public.services.slug in Supabase.
+export const services: CatalogueEntry[] = [
   {
-    id: "cut_styling",
+    id: "haircut",
     icon: "✂️",
+    category: "barber",
+    name_es: "Corte de cabello",
+    name_en: "Haircut",
+    category_es: "Barbería",
+    category_en: "Barber",
+    price: null,
+    duration: 60,
+    durationVariable: true,
+  },
+  {
+    id: "cornrows",
+    icon: "💇🏾‍♀️",
+    category: "braids",
+    name_es: "Trenzas pegadas",
+    name_en: "Cornrows",
+    category_es: "Trenzado",
+    category_en: "Braiding",
+    price: null,
+    duration: 180,
+    durationVariable: true,
+  },
+  {
+    id: "individual_braids",
+    icon: "🧵",
+    category: "braids",
+    name_es: "Trenza individual",
+    name_en: "Individual braids",
+    category_es: "Trenzado",
+    category_en: "Braiding",
+    price: null,
+    duration: 180,
+    durationVariable: true,
+  },
+  {
+    id: "knotless_braids",
+    icon: "🪢",
+    category: "braids",
+    name_es: "Trenza sin nudo",
+    name_en: "Knotless braids",
+    category_es: "Trenzado",
+    category_en: "Braiding",
+    price: null,
+    duration: 180,
+    durationVariable: true,
+  },
+  {
+    id: "micro_twists",
+    icon: "🌀",
+    category: "braids",
+    name_es: "Micro-twist",
+    name_en: "Micro twists",
+    category_es: "Trenzado",
+    category_en: "Braiding",
+    price: null,
+    duration: 180,
+    durationVariable: true,
+  },
+  {
+    id: "natural_twists",
+    icon: "🌿",
+    category: "braids",
+    name_es: "Twist en cabello natural",
+    name_en: "Natural hair twists",
+    category_es: "Trenzado",
+    category_en: "Braiding",
+    price: null,
+    duration: 180,
+    durationVariable: true,
+  },
+  {
+    id: "crochet_braids",
+    icon: "🪡",
+    category: "braids",
+    name_es: "Crochet braids",
+    name_en: "Crochet braids",
+    category_es: "Trenzado",
+    category_en: "Braiding",
+    price: null,
+    duration: 180,
+    durationVariable: true,
+  },
+  {
+    id: "wash_blowdry",
+    icon: "💧",
     category: "hair",
-    name_es: "Corte y peinado",
-    name_en: "Cut & styling",
+    name_es: "Lavado y secado",
+    name_en: "Wash and blow-dry",
     category_es: "Peluquería",
     category_en: "Hair",
-    price: 35,
-    duration: 60,
-  },
-  {
-    id: "color",
-    icon: "🎨",
-    category: "hair",
-    name_es: "Color",
-    name_en: "Colour",
-    category_es: "Color",
-    category_en: "Colour",
-    price: 65,
+    price: null,
     duration: 120,
-  },
-  {
-    id: "manicure",
-    icon: "💅",
-    category: "beauty",
-    name_es: "Manicura",
-    name_en: "Manicure",
-    category_es: "Belleza",
-    category_en: "Beauty",
-    price: 30,
-    duration: 60,
+    durationVariable: true,
   },
 ];
 

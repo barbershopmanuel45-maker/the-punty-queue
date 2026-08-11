@@ -8,7 +8,9 @@ import {
 import {
   businessConfig,
   formatOpeningHours,
+  formatServicePrice,
   getOpeningWindow,
+  pricingCopy,
 } from "@/lib/business";
 import {
   createBooking,
@@ -442,7 +444,10 @@ export default function PuntyAssistant({
       });
 
       const list = services
-        .map((s, i) => `${i + 1}. ${serviceName(s)} — ${businessConfig.currencySymbol}${s.price}`)
+        .map(
+          (s, i) =>
+            `${i + 1}. ${serviceName(s)} — ${formatServicePrice(s.price, lang)}`,
+        )
         .join("\n");
 
       push({
@@ -596,8 +601,11 @@ export default function PuntyAssistant({
             .replace("{t}", d.time)
             .replace("{b}", finalProfessional)
             .replace("{e}", d.email)
-            .replace("{p}", String(saved.price ?? d.service.price))
-            .replace("{c}", businessConfig.currencySymbol),
+            .replace(
+              "{p}",
+              formatServicePrice(saved.price ?? d.service.price, lang),
+            )
+            .replace("{c}", ""),
           quick: tt.quick,
         });
       } catch (error) {
@@ -660,7 +668,7 @@ export default function PuntyAssistant({
     const list = services
       .map(
         (s) =>
-          `• ${s.icon} ${serviceName(s)} — ${businessConfig.currencySymbol}${s.price} (${s.duration}min)`,
+          `• ${s.icon} ${serviceName(s)} — ${formatServicePrice(s.price, lang)}\n  ${pricingCopy[lang].durationVaries}`,
       )
       .join("\n");
 

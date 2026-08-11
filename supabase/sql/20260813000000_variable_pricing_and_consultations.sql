@@ -193,13 +193,47 @@ WHERE ss.service_id = sv.id
 -- 3. appointments: metadatos comerciales. booking_range y EXCLUDE intactos.
 -- =====================================================================
 ALTER TABLE public.appointments
-  ADD COLUMN IF NOT EXISTS duration_is_estimate boolean NOT NULL DEFAULT true,
-  ADD COLUMN IF NOT EXISTS price_pending        boolean NOT NULL DEFAULT true,
+  ADD COLUMN IF NOT EXISTS duration_is_estimate boolean NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS price_pending        boolean NOT NULL DEFAULT false,
   ADD COLUMN IF NOT EXISTS agreed_price         numeric(10,2),
   ADD COLUMN IF NOT EXISTS payment_method       text    NOT NULL DEFAULT 'cash_in_person';
 
+-- service_price pasa a ser nullable HACIA ADELANTE.
+-- NULL = precio todavia no acordado. NUNCA se interpreta como 0.
+-- No se toca ninguna fila historica: solo se retiran DEFAULT y NOT NULL.
+ALTER TABLE public.appointments ALTER COLUMN service_price DROP DEFAULT;
+ALTER TABLE public.appointments ALTER COLUMN service_price DROP NOT NULL;
+
+-- Coherencia de precios. NOT VALID: no se valida contra el historico legacy.
+ALTER TABLE public.appointments
+  DROP CONSTRAINT IF EXISTS appointments_agreed_price_nonneg_chk;
+ALTER TABLE public.appointments
+  ADD CONSTRAINT appointments_agreed_price_nonneg_chk
+  CHECK (agreed_price IS NULL OR agreed_price >= 0) NOT VALID;
+
+ALTER TABLE public.appointments
+  DROP CONSTRAINT IF EXISTS appointments_price_pending_chk;
+ALTER TABLE public.appointments
+  ADD CONSTRAINT appointments_price_pending_chk
+  CHECK (
+    (price_pending = true  AND service_price IS NULL AND agreed_price IS NULL)
+    OR
+    (price_pending = false)
+  ) NOT VALID;
+
+-- Si hay precio acordado, el precio ya no esta pendiente.
+ALTER TABLE public.appointments
+  DROP CONSTRAINT IF EXISTS appointments_agreed_price_not_pending_chk;
+ALTER TABLE public.appointments
+  ADD CONSTRAINT appointments_agreed_price_not_pending_chk
+  CHECK (agreed_price IS NULL OR price_pending = false) NOT VALID;
+
 COMMENT ON COLUMN public.appointments.service_duration IS
   'Bloque de agenda (booking_block_minutes). No es la duración real prometida.';
+COMMENT ON COLUMN public.appointments.service_price IS
+  'Snapshot legacy/precio fijo. NULL = precio a consultar. Nunca mostrar como 0.';
+COMMENT ON COLUMN public.appointments.agreed_price IS
+  'Precio finalmente acordado con la profesional. Fuente de verdad de ingresos.';
 
 -- =====================================================================
 -- 4. create_booking: mismo contrato, el bloque sale de booking_block_minutes
@@ -225,6 +259,7 @@ DECLARE
   _biz        uuid := public.current_business_id();
   _svc        public.services%ROWTYPE;
   _block      integer;
+  _price      numeric;
   _tz text; _status text; _slot integer;
   _start timestamp; _end timestamp; _local_now timestamp;
   _hours public.business_hours%ROWTYPE;
@@ -247,8 +282,15 @@ BEGIN
   IF NOT FOUND THEN
     RAISE EXCEPTION 'SERVICE_NOT_AVAILABLE' USING ERRCODE = 'P0001'; END IF;
 
-  -- ÚNICO cambio funcional respecto a la versión actual.
+  -- Bloque interno de agenda (no es la duración prometida al cliente).
   _block := coalesce(_svc.booking_block_minutes, _svc.duration_minutes, 60);
+
+  -- Precio: NULL cuando es "a consultar"; nunca 0. Legacy conserva su importe.
+  IF coalesce(_svc.price_on_consultation, false) THEN
+    _price := NULL;
+  ELSE
+    _price := _svc.price;
+  END IF;
 
   SELECT bs.timezone, bs.initial_status, bs.slot_interval
     INTO _tz, _status, _slot
@@ -308,14 +350,16 @@ BEGIN
         comments, status, duration_is_estimate, price_pending, payment_method)
       VALUES (
         _biz, _name, _tel, coalesce(_mail,''),
-        _svc.id, _svc.name, 0, _block,
+        _svc.id, _svc.name, _price, _block,
         _candidate.cid, _candidate.cname, _appointment_date, _appointment_time,
         nullif(btrim(coalesce(_comments,'')),''), _status,
-        _svc.duration_variable, _svc.price_on_consultation, _svc.payment_method)
+        coalesce(_svc.duration_variable,false),
+        coalesce(_svc.price_on_consultation,false),
+        coalesce(_svc.payment_method,'cash_in_person'))
       RETURNING appointments.id INTO _new_id;
 
       RETURN QUERY SELECT _new_id, _candidate.cid, _candidate.cname, _svc.id,
-        _svc.name, 0::numeric, _block, _appointment_date, _appointment_time, _status;
+        _svc.name, _price, _block, _appointment_date, _appointment_time, _status;
       RETURN;
     EXCEPTION WHEN exclusion_violation THEN CONTINUE;
     END;
@@ -556,9 +600,12 @@ BEGIN
     _req.email, _staff,
     nullif(concat_ws(' | ', _req.comments, _req.hair_notes), ''));
 
+  -- agreed_price es la fuente de verdad. NO se copia a service_price
+  -- (snapshot original/legacy). Si no hay precio, sigue pendiente.
   UPDATE public.appointments a
-  SET agreed_price = coalesce(_agreed_price, _req.quoted_price),
+  SET agreed_price  = coalesce(_agreed_price, _req.quoted_price),
       price_pending = (coalesce(_agreed_price, _req.quoted_price) IS NULL)
+                      AND a.service_price IS NULL
   WHERE a.id = _b.id;
 
   UPDATE public.consultation_requests c

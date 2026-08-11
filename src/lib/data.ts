@@ -15,7 +15,12 @@ export type BookingUI = {
   date: string;
   time: string;
   comments: string;
-  price: number;
+  /** null = price on consultation (price_pending). Never treat as 0. */
+  price: number | null;
+  agreedPrice?: number | null;
+  pricePending?: boolean;
+  durationIsEstimate?: boolean;
+  paymentMethod?: string;
   duration: number;
   createdAt: number;
   status?: BookingStatus;
@@ -61,6 +66,10 @@ export type Source = "supabase" | "localStorage";
 
 const legacyServices: Record<string, string> = {
   haircut: "haircut",
+  cut_styling: "haircut",
+  "Corte y peinado": "haircut",
+  "Cut & styling": "haircut",
+  "Corte de cabello": "haircut",
   "Corte de pelo": "haircut",
   "Corte de Pelo": "haircut",
   "Corte con Tijera": "haircut",
@@ -134,7 +143,17 @@ function rowToBooking(r: any): BookingUI {
     date: r.appointment_date || "",
     time: String(r.appointment_time || "").slice(0, 5),
     comments: r.comments || "",
-    price: Number(r.service_price) || Number(svc?.price) || 0,
+    price:
+      r.service_price === null || r.service_price === undefined
+        ? null
+        : Number(r.service_price),
+    agreedPrice:
+      r.agreed_price === null || r.agreed_price === undefined
+        ? null
+        : Number(r.agreed_price),
+    pricePending: Boolean(r.price_pending),
+    durationIsEstimate: Boolean(r.duration_is_estimate),
+    paymentMethod: r.payment_method || "cash_in_person",
     duration: Number(r.service_duration) || Number(svc?.duration) || 30,
     createdAt: r.created_at ? new Date(r.created_at).getTime() : Date.now(),
     status: cleanStatus(r.status),
@@ -151,7 +170,10 @@ function bookingToRow(b: BookingUI) {
     phone: b.phone,
     email: b.email || "",
     service_name: svc ? svc.name_es : b.service,
-    service_price: Number(b.price) || Number(svc?.price) || 0,
+    service_price:
+      b.pricePending || b.price === null || b.price === undefined
+        ? null
+        : Number(b.price),
     service_duration: Number(b.duration) || Number(svc?.duration) || 30,
     barber: b.barber,
     appointment_date: b.date,
@@ -261,7 +283,7 @@ export type CatalogueService = {
   id: string;
   slug: string;
   name: string;
-  price: number;
+  price: number | null;
   duration: number;
 };
 
@@ -283,7 +305,9 @@ export function loadCatalogue() {
       const [svc, stf] = await Promise.all([
         supabase
           .from("services")
-          .select("id, slug, name, price, duration_minutes")
+          .select(
+            "id, slug, name, price, duration_minutes, booking_block_minutes, price_on_consultation, duration_variable",
+          )
           .eq("is_active", true),
         supabase.from("staff").select("id, slug, name").eq("is_active", true),
       ]);
@@ -296,8 +320,9 @@ export function loadCatalogue() {
           id: r.id,
           slug: r.slug,
           name: r.name,
-          price: Number(r.price) || 0,
-          duration: Number(r.duration_minutes) || 30,
+          price: r.price_on_consultation ? null : Number(r.price) || null,
+          duration:
+            Number(r.booking_block_minutes) || Number(r.duration_minutes) || 30,
         })),
         staff: (stf.data || []).map((r: any) => ({
           id: r.id,
@@ -400,7 +425,15 @@ export async function createBooking(b: BookingUI): Promise<BookingUI> {
     id: row.id,
     service: svc.slug,
     barber: row.staff_name || b.barber,
-    price: Number(row.service_price) || svc.price,
+    price:
+      row.service_price === null || row.service_price === undefined
+        ? null
+        : Number(row.service_price),
+    agreedPrice: null,
+    pricePending:
+      row.service_price === null || row.service_price === undefined,
+    durationIsEstimate: true,
+    paymentMethod: "cash_in_person",
     duration: Number(row.service_duration) || svc.duration,
     status: cleanStatus(row.status),
     business_id: getCurrentBusinessId(),
