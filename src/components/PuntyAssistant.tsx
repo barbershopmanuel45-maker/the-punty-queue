@@ -52,7 +52,7 @@ const T = {
       1,
     )}\nDomingo: solo con reserva ${formatOpeningHours(0)}`,
     confirm:
-      "✅ ¡Reserva confirmada!\n\n{n} — {s}\n📅 {d} a las {t}\n💈 Profesional: {b}\n📧 {e}\n💷 £{p}",
+      "✅ ¡Reserva confirmada!\n\n{n} — {s}\n📅 {d} a las {t}\n💈 Profesional: {b}\n📧 {e}\n💷 {c}{p}",
     cancelInfo:
       `Para cancelar o modificar una reserva, contacta directamente con ${businessConfig.businessName}.`,
     walkinAsk: "¿Tu nombre para la cola?",
@@ -90,7 +90,7 @@ const T = {
       1,
     )}\nSunday: booking only ${formatOpeningHours(0)}`,
     confirm:
-      "✅ Booking confirmed!\n\n{n} — {s}\n📅 {d} at {t}\n💈 Professional: {b}\n📧 {e}\n💷 £{p}",
+      "✅ Booking confirmed!\n\n{n} — {s}\n📅 {d} at {t}\n💈 Professional: {b}\n📧 {e}\n💷 {c}{p}",
     cancelInfo:
       `To cancel or modify a booking, contact ${businessConfig.businessName} directly.`,
     walkinAsk: "Your name for the queue?",
@@ -436,7 +436,7 @@ export default function PuntyAssistant({
       });
 
       const list = services
-        .map((s, i) => `${i + 1}. ${serviceName(s)} — £${s.price}`)
+        .map((s, i) => `${i + 1}. ${serviceName(s)} — ${businessConfig.currencySymbol}${s.price}`)
         .join("\n");
 
       push({
@@ -627,7 +627,8 @@ export default function PuntyAssistant({
             .replace("{t}", d.time)
             .replace("{b}", finalProfessional)
             .replace("{e}", d.email)
-            .replace("{p}", String(d.service.price)),
+            .replace("{p}", String(d.service.price))
+            .replace("{c}", businessConfig.currencySymbol),
           quick: tt.quick,
         });
       } catch (error) {
@@ -689,7 +690,7 @@ export default function PuntyAssistant({
     const list = services
       .map(
         (s) =>
-          `• ${s.icon} ${serviceName(s)} — £${s.price} (${s.duration}min)`,
+          `• ${s.icon} ${serviceName(s)} — ${businessConfig.currencySymbol}${s.price} (${s.duration}min)`,
       )
       .join("\n");
 

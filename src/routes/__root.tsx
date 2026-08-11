@@ -1,6 +1,8 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import HideLovableBadge from "../components/HideLovableBadge";
 
+import { businessConfig } from "../lib/business";
+
 import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
@@ -30,49 +32,11 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-
-      { title: "JuniorFADEfactory | Barber Shop London SE1" },
-
-      {
-        name: "description",
-        content:
-          "Barbería profesional en Londres. Reserva online, walk-ins, degradados, cortes clásicos y servicio VIP.",
-      },
-
-      { name: "author", content: "JuniorFADEfactory" },
-
-      { property: "og:title", content: "JuniorFADEfactory | Barber Shop London SE1" },
-      {
-        property: "og:description",
-        content:
-          "Professional barber shop in London. Online booking, walk-ins, skin fades, classic cuts and VIP grooming services.",
-      },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://juniorfadefactory.lovable.app/" },
-      {
-        property: "og:image",
-        content: "https://juniorfadefactory.lovable.app/project-preview.png",
-      },
-
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "JuniorFADEfactory | Barber Shop London SE1" },
-      {
-        name: "twitter:description",
-        content:
-          "Professional barber shop in London. Online booking, walk-ins, skin fades, classic cuts and VIP grooming services.",
-      },
-      {
-        name: "twitter:image",
-        content: "https://juniorfadefactory.lovable.app/project-preview.png",
-      },
-      { name: "description", content: "Reserva online en JuniorFADEfactory Barber Shop London SE1. Cortes, degradados, barba y servicios VIP sin esperas. Agenda tu cita fácil y rápido." },
-      { property: "og:description", content: "Reserva online en JuniorFADEfactory Barber Shop London SE1. Cortes, degradados, barba y servicios VIP sin esperas. Agenda tu cita fácil y rápido." },
-      { name: "twitter:description", content: "Reserva online en JuniorFADEfactory Barber Shop London SE1. Cortes, degradados, barba y servicios VIP sin esperas. Agenda tu cita fácil y rápido." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/42ff160b-378a-4dad-9153-2aa741641bda/id-preview-54407ace--71e33015-6d41-47c8-9d77-b59cc8884a31.lovable.app-1782725912392.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/42ff160b-378a-4dad-9153-2aa741641bda/id-preview-54407ace--71e33015-6d41-47c8-9d77-b59cc8884a31.lovable.app-1782725912392.png" },
+      { property: "og:site_name", content: businessConfig.businessName },
     ],
     links: [
-      { rel: "icon", type: "image/png", href: "/favicon.png" },
+      { rel: "icon", type: "image/png", href: businessConfig.favicon },
       {
         rel: "stylesheet",
         href: appCss,
@@ -86,7 +50,7 @@ export const Route = createRootRoute({
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
+    <html lang={businessConfig.locale}>
       <head>
         <HeadContent />
       </head>
