@@ -3,21 +3,19 @@
 // It only accepts an appointment id, reads the row server-side with the
 // service role and claims `confirmation_sent_at` atomically (idempotent).
 import { createFileRoute } from "@tanstack/react-router";
+import type { AppointmentRow } from "@/lib/email/templates.server";
 
 export const Route = createFileRoute("/api/public/email/booking-confirmation")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const {
-          db,
-          dbJson,
-          isUuid,
-          pickLang,
-          sendEmail,
-          businessInfo,
-        } = await import("@/lib/email/mailer.server");
-        const { bookingConfirmationEmail, bookingNoticeEmail, type AppointmentRow } =
-          await import("@/lib/email/templates.server");
+        const { db, dbJson, isUuid, pickLang, sendEmail, businessInfo } =
+          await import("@/lib/email/mailer.server");
+        const { bookingConfirmationEmail, bookingNoticeEmail } = await import(
+          "@/lib/email/templates.server"
+        );
+
+        let claimedId: string | null = null;
 
         try {
           const body = (await request.json().catch(() => ({}))) as Record<
@@ -48,6 +46,8 @@ export const Route = createFileRoute("/api/public/email/booking-confirmation")({
           const appt = claimed[0];
           if (!appt) return Response.json({ skipped: "already_sent" });
 
+          claimedId = appt.id;
+
           const business = businessInfo();
           let sent = 0;
 
@@ -76,19 +76,19 @@ export const Route = createFileRoute("/api/public/email/booking-confirmation")({
           return Response.json({ ok: true, sent });
         } catch (error) {
           console.error("[email/booking-confirmation]", error);
-          // Release the claim so a retry can send it later.
-          try {
-            const body = { confirmation_sent_at: null };
-            const id = new URL(request.url).searchParams.get("id");
-            if (id) {
-              await db(`appointments?id=eq.${id}`, {
+
+          // Release the claim so a later retry can still deliver it.
+          if (claimedId) {
+            try {
+              await db(`appointments?id=eq.${claimedId}`, {
                 method: "PATCH",
-                body: JSON.stringify(body),
+                body: JSON.stringify({ confirmation_sent_at: null }),
               });
+            } catch {
+              /* ignore */
             }
-          } catch {
-            /* ignore */
           }
+
           return Response.json({ error: "EMAIL_FAILED" }, { status: 500 });
         }
       },
