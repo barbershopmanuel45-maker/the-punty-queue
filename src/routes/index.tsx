@@ -477,12 +477,15 @@ function Services({
                 </h3>
 
                 <p className="text-xs text-muted-foreground">
-                  {s.duration} {t.services.min}
+                  {pricingCopy[lang].durationVaries}
                 </p>
               </div>
 
-              <div className="text-brand-blue font-bold text-lg">
-                {formatPrice(s.price)}
+              <div className="text-brand-blue font-bold text-sm text-right">
+                {formatServicePrice(s.price, lang)}
+                <span className="block text-[11px] font-normal text-muted-foreground">
+                  {pricingCopy[lang].cash}
+                </span>
               </div>
             </div>
           ))}
@@ -1116,7 +1119,7 @@ const isActiveBooking = (status?: string) => {
             >
               {services.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {lang === "es" ? s.name_es : s.name_en} — £{s.price}
+                  {lang === "es" ? s.name_es : s.name_en}
                 </option>
               ))}
             </select>
@@ -1194,7 +1197,7 @@ const isActiveBooking = (status?: string) => {
                   {t.booking.price}:{" "}
                 </span>
                 <span className="font-bold text-brand-blue">
-                  £{selected.price}
+                  {formatServicePrice(selected.price, lang)}
                 </span>
               </div>
 
@@ -1203,7 +1206,7 @@ const isActiveBooking = (status?: string) => {
                   {t.booking.duration}:{" "}
                 </span>
                 <span className="font-bold text-brand-blue">
-                  {selected.duration} {t.services.min}
+                  {pricingCopy[lang].durationVaries}
                 </span>
               </div>
             </div>
@@ -1255,7 +1258,7 @@ const isActiveBooking = (status?: string) => {
 
               <div>
                 {confirmed.serviceLabel || confirmed.service} —{" "}
-                {formatPrice(confirmed.price)}
+                {formatServicePrice(confirmed.price, lang)}
               </div>
 
               <div className="text-muted-foreground">
