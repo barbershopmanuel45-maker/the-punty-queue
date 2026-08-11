@@ -914,46 +914,14 @@ const isActiveBooking = (status?: string) => {
     setSaving(true);
 
     try {
-      const existing = await listBookings();
-      const existingBookings = existing.data || [];
-
-      let finalProfessional = form.barber;
-
-      if (form.barber === "any") {
-        const available = findAvailableProfessional(
-          existingBookings,
-          form.date,
-          form.time,
-          selected.duration,
-        );
-
-        if (!available) {
-          setError("Ese horario ya no está disponible. Elige otro.");
-          return;
-        }
-
-        finalProfessional = available;
-      } else {
-        const busy = professionalIsBusy(
-          existingBookings,
-          form.barber,
-          form.date,
-          form.time,
-          selected.duration,
-        );
-
-        if (busy) {
-          setError("Ese horario ya no está disponible. Elige otro.");
-          return;
-        }
-      }
-
+      // The database is the final authority: "any" is resolved server-side
+      // and the professional/price/duration come back from create_booking.
       const booking = {
         name: form.name.trim(),
         phone: normalizeUkMobile(form.phone),
         email: form.email.trim().toLowerCase(),
         service: selected.id,
-        barber: finalProfessional,
+        barber: form.barber,
         date: form.date,
         time: form.time,
         comments: form.comments || "",
@@ -964,6 +932,7 @@ const isActiveBooking = (status?: string) => {
       };
 
       const saved = await createBooking(booking);
+      const finalProfessional = saved.barber || form.barber;
 
       try {
         if (booking.email) {
@@ -975,7 +944,7 @@ const isActiveBooking = (status?: string) => {
               barber: finalProfessional,
               appointment_date: booking.date,
               appointment_time: booking.time,
-              price: booking.price,
+              price: saved.price,
             },
           });
         }
@@ -990,7 +959,7 @@ const isActiveBooking = (status?: string) => {
         serviceLabel: lang === "es" ? selected.name_es : selected.name_en,
       });
 
-      setBookings((current) => [...current, booking]);
+      setBookings((current) => [...current, { ...booking, ...saved }]);
 
       setForm({
         name: "",
@@ -1004,8 +973,23 @@ const isActiveBooking = (status?: string) => {
       });
     } catch (err) {
       console.error("[booking form] save failed", err);
-      setError("No se pudo guardar la reserva. Inténtalo otra vez.");
+
+      if (isSlotTakenError(err)) {
+        setError(
+          "Lo sentimos, ese horario acaba de ser reservado. Elige otro horario.",
+        );
+
+        try {
+          const refreshed = await listBookings();
+          setBookings(refreshed.data || []);
+        } catch (refreshError) {
+          console.warn("[booking form] availability refresh failed", refreshError);
+        }
+      } else {
+        setError("No se pudo guardar la reserva. Inténtalo otra vez.");
+      }
     } finally {
+
       setSaving(false);
     }
   };
