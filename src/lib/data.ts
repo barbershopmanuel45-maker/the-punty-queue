@@ -255,28 +255,158 @@ function publicSlotToBooking(r: any): BookingUI {
   };
 }
 
+// ---------- Catalogue (server-side authority) ----------
+
+export type CatalogueService = {
+  id: string;
+  slug: string;
+  name: string;
+  price: number;
+  duration: number;
+};
+
+export type CatalogueStaff = {
+  id: string;
+  slug: string;
+  name: string;
+};
+
+let cataloguePromise: Promise<{
+  services: CatalogueService[];
+  staff: CatalogueStaff[];
+}> | null = null;
+
+/** Reads the authoritative catalogue (public, read-only). Cached per session. */
+export function loadCatalogue() {
+  if (!cataloguePromise) {
+    cataloguePromise = (async () => {
+      const [svc, stf] = await Promise.all([
+        supabase
+          .from("services")
+          .select("id, slug, name, price, duration_minutes")
+          .eq("is_active", true),
+        supabase.from("staff").select("id, slug, name").eq("is_active", true),
+      ]);
+
+      if (svc.error) throw svc.error;
+      if (stf.error) throw stf.error;
+
+      return {
+        services: (svc.data || []).map((r: any) => ({
+          id: r.id,
+          slug: r.slug,
+          name: r.name,
+          price: Number(r.price) || 0,
+          duration: Number(r.duration_minutes) || 30,
+        })),
+        staff: (stf.data || []).map((r: any) => ({
+          id: r.id,
+          slug: r.slug,
+          name: r.name,
+        })),
+      };
+    })().catch((e) => {
+      cataloguePromise = null;
+      throw e;
+    });
+  }
+
+  return cataloguePromise;
+}
+
 // ---------- Bookings ----------
 
+/** Error code returned by the database when the slot was taken meanwhile. */
+export const BOOKING_SLOT_TAKEN = "BOOKING_SLOT_TAKEN";
+
+export class BookingError extends Error {
+  code: string;
+
+  constructor(code: string, message?: string) {
+    super(message || code);
+    this.name = "BookingError";
+    this.code = code;
+  }
+}
+
+export function isSlotTakenError(e: unknown): boolean {
+  return e instanceof BookingError && e.code === BOOKING_SLOT_TAKEN;
+}
+
+/**
+ * Creates a booking through the atomic `create_booking` RPC.
+ * Price, duration, service name and professional name are resolved by the
+ * database; anything the client sends for those fields is ignored.
+ */
 export async function createBooking(b: BookingUI): Promise<BookingUI> {
-  const row: Record<string, any> = bookingToRow(b);
-  const biz = b.business_id || getCurrentBusinessId();
+  const catalogue = await loadCatalogue();
 
-  if (biz) row.business_id = biz;
+  const svc =
+    catalogue.services.find((s) => s.slug === b.service) ||
+    catalogue.services.find((s) => s.name === b.service) ||
+    null;
 
-  const { error } = await supabase
-    .from("appointments")
-    .insert([row]);
+  if (!svc) {
+    throw new BookingError("SERVICE_NOT_AVAILABLE");
+  }
+
+  const wantsAny = !b.barber || b.barber === "any";
+  const staff = wantsAny
+    ? null
+    : catalogue.staff.find(
+        (s) => s.name === b.barber || s.slug === b.barber || s.id === b.barber,
+      ) || null;
+
+  if (!wantsAny && !staff) {
+    throw new BookingError("STAFF_NOT_AVAILABLE");
+  }
+
+  const { data, error } = await supabase.rpc("create_booking", {
+    _customer_name: b.name,
+    _phone: b.phone,
+    _email: b.email || null,
+    _service_id: svc.id,
+    _staff_id: staff ? staff.id : null,
+    _appointment_date: b.date,
+    _appointment_time: b.time,
+    _comments: b.comments || null,
+  });
 
   if (error) {
-    console.error("[supabase] createBooking failed", error, row);
-    throw error;
+    console.error("[supabase] create_booking failed", error);
+
+    const message = String(error.message || "");
+    const known = [
+      BOOKING_SLOT_TAKEN,
+      "SERVICE_NOT_AVAILABLE",
+      "STAFF_NOT_AVAILABLE",
+      "OUTSIDE_OPENING_HOURS",
+      "SLOT_IN_THE_PAST",
+      "INVALID_CUSTOMER_NAME",
+      "INVALID_PHONE",
+      "INVALID_EMAIL",
+      "INVALID_SLOT",
+    ].find((code) => message.includes(code));
+
+    throw new BookingError(known || "BOOKING_FAILED", message);
   }
+
+  const row = Array.isArray(data) ? data[0] : data;
+
+  if (!row) throw new BookingError("BOOKING_FAILED");
 
   return {
     ...b,
-    business_id: biz || b.business_id || null,
+    id: row.id,
+    service: svc.slug,
+    barber: row.staff_name || b.barber,
+    price: Number(row.service_price) || svc.price,
+    duration: Number(row.service_duration) || svc.duration,
+    status: cleanStatus(row.status),
+    business_id: getCurrentBusinessId(),
   };
 }
+
 export async function listBookings(
   businessId?: string | null,
 ): Promise<{ data: BookingUI[]; source: Source }> {
