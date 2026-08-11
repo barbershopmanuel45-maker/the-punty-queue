@@ -197,11 +197,19 @@ export const translations = {
       duration: "Duration",
       submit: "Confirm booking",
       success: "Booking confirmed!",
-      successDesc: "We'll see you at our salon.",
+      successDesc: "We look forward to welcoming you to our salon.",
       close: "Close",
       loadingTimes: "Loading times...",
       selectTime: "Select a time",
       chooseDateFirst: "Choose a date first",
+      saving: "Saving…",
+      invalidPhone: "Enter a valid UK mobile. Example: 07788998899",
+      invalidEmail: "Enter a valid email address.",
+      pastDate: "You cannot book a past date.",
+      outsideHours: "Time not available. We open every day {h}.",
+      slotTaken:
+        "This time is no longer available. Please choose another time.",
+      saveError: "The booking could not be saved. Please try again.",
     },
     walkin: {
       title: "Walk-in: virtual queue",
@@ -222,12 +230,15 @@ export const translations = {
       ],
     },
     footer: {
+      description:
+        "Hair & beauty salon. Book your hair, colour or beauty appointment online in seconds.",
       address: "Address",
       hours: "Hours",
-      weekdays: "Monday-Saturday",
+      weekdays: "Monday–Saturday",
       sunday: "Sunday",
       rights: "All rights reserved.",
     },
+
   },
 };
 
