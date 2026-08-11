@@ -450,14 +450,14 @@ function AdminPage() {
   function getServicePrice(item: AppointmentRow) {
     const price = item.service_price;
 
-    if (typeof price === "number") return `£${price}`;
+    if (typeof price === "number") return formatPrice(price);
 
     const match = SERVICES.find(
       (service) =>
         service.name.toLowerCase() === getServiceName(item).toLowerCase()
     );
 
-    return match ? `£${match.price}` : "—";
+    return match ? formatPrice(match.price) : "—";
   }
 
   function getNumericPrice(item: AppointmentRow) {
@@ -589,7 +589,7 @@ function AdminPage() {
       "Servicio / Service",
       "Precio / Price",
       "Duracion / Duration",
-      "Barbero / Barber",
+      "Profesional / Professional",
       "Fecha / Date",
       "Hora / Time",
       "Estado / Status",
@@ -661,7 +661,7 @@ function AdminPage() {
                   Duración
                 </th>
                 <th className="w-[8%] px-3 py-2 text-left font-medium text-muted-foreground">
-                  Barbero
+                  Profesional
                 </th>
                 <th className="w-[10%] px-3 py-2 text-left font-medium text-muted-foreground">
                   Fecha / Date
@@ -836,7 +836,7 @@ function AdminPage() {
           />
           <StatCard
             label="Ingresos estimados / Est. revenue"
-            value={`£${estimatedRevenue.toFixed(2)}`}
+            value={formatPrice(estimatedRevenue.toFixed(2))}
             colorClass="text-brand-blue"
             borderClass="border-l-brand-blue"
           />
@@ -1144,7 +1144,7 @@ function AdminPage() {
 
               <div>
                 <label className="mb-1 block text-sm font-semibold">
-                  Precio (£) / Price
+                  Precio / Price
                 </label>
                 <input
                   type="number"
@@ -1184,7 +1184,7 @@ function AdminPage() {
 
               <div>
                 <label className="mb-1 block text-sm font-semibold">
-                  Barbero / Barber
+                  Profesional / Professional
                 </label>
                 <select
                   className="w-full rounded-lg border p-2"
