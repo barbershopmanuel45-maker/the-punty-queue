@@ -344,11 +344,20 @@ BEGIN
     RAISE EXCEPTION 'SERVICE_NOT_AVAILABLE' USING ERRCODE = 'P0001';
   END IF;
 
-  SELECT timezone, initial_status INTO _tz, _status
+  SELECT timezone, initial_status, slot_interval INTO _tz, _status, _slot
   FROM public.business_settings WHERE business_id = _biz;
 
   _tz := coalesce(_tz, 'Europe/London');
   _status := coalesce(_status, 'confirmed');
+  _slot := coalesce(_slot, 30);
+
+  -- The requested time must fall on the slot grid (no seconds, no 10:07).
+  IF EXTRACT(SECOND FROM _appointment_time) <> 0
+     OR (EXTRACT(HOUR FROM _appointment_time)::int * 60
+         + EXTRACT(MINUTE FROM _appointment_time)::int) % _slot <> 0 THEN
+    RAISE EXCEPTION 'INVALID_SLOT_INTERVAL' USING ERRCODE = 'P0001';
+  END IF;
+
 
   _start := _appointment_date + _appointment_time;
   _end   := _start + make_interval(mins => _svc.duration_minutes);
