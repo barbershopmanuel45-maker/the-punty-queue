@@ -134,3 +134,43 @@ export function formatOpeningHours(day: number): string {
 export function formatPrice(value: number | string): string {
   return `${businessConfig.currencySymbol}${value}`;
 }
+
+/** Commercial copy for services with no fixed price/duration. */
+export const pricingCopy = {
+  es: {
+    onConsultation: "Precio a consultar",
+    durationVaries: "Duración variable según el cabello y el servicio",
+    cash: "Pago en efectivo en el salón",
+  },
+  en: {
+    onConsultation: "Price on consultation",
+    durationVaries: "Duration varies depending on hair and service",
+    cash: "Cash payment at the salon",
+  },
+} as const;
+
+/**
+ * Never renders 0 or NULL as a price. `null`/`undefined` means the price has
+ * not been agreed yet and must be shown as "price on consultation".
+ */
+export function formatServicePrice(
+  value: number | null | undefined,
+  lang: "es" | "en" = "es",
+): string {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) {
+    return pricingCopy[lang].onConsultation;
+  }
+  return formatPrice(Number(value).toFixed(2));
+}
+
+/** Duration label: variable services never advertise a fixed length. */
+export function formatServiceDuration(
+  minutes: number | null | undefined,
+  lang: "es" | "en" = "es",
+  isEstimate = false,
+): string {
+  if (isEstimate || minutes === null || minutes === undefined) {
+    return pricingCopy[lang].durationVaries;
+  }
+  return `${minutes} min`;
+}
