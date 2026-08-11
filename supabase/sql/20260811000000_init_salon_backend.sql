@@ -34,9 +34,10 @@ BEGIN
 
   IF array_length(bad, 1) > 0 THEN
     RAISE EXCEPTION
-      'Migration aborted: public.% already exists but is NOT a regular table. Offenders: %. Drop or rename these relations first (see supabase/sql/00_repair_user_roles.sql).',
-      'schema', array_to_string(bad, ', ');
+      'Migration aborted: these public relations exist but are NOT regular tables: %. Drop or rename them first (see supabase/sql/00_repair_user_roles.sql).',
+      array_to_string(bad, ', ');
   END IF;
+
 END $$;
 
 
