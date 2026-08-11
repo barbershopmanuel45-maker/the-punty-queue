@@ -47,11 +47,20 @@ export const translations = {
       subtitle: "Calidad profesional. Precios honestos.",
       min: "min",
     },
+    styles: {
+      title: "Trenzado y peinados",
+      subtitle: "Nuestros estilos de trenzado, twists y crochet.",
+      comingSoon: "Próximamente disponible para reserva online",
+      book: "Reservar",
+      view: "Ver servicio",
+    },
     reviews: {
       title: "Lo que dicen nuestros clientes",
       subtitle: "Opiniones reales de nuestros clientes.",
       empty: "Aún no hay reseñas disponibles.",
+      loading: "Cargando reseñas...",
     },
+
     booking: {
       title: "Reserva tu cita",
       subtitle: "Completa el formulario y recibe confirmación al instante.",
