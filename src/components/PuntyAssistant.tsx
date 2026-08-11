@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import logo from "@/assets/logo.png";
 import { services, type Lang } from "@/lib/i18n";
+import { notifyBookingConfirmation, notifyConsultation } from "@/lib/email/notify";
 import {
   businessConfig,
   formatOpeningHours,
@@ -688,6 +689,10 @@ export default function PuntyAssistant({
         const saved = await createBooking(booking);
         const finalProfessional = saved.barber || d.barber;
 
+        // Confirmation + business notice (server-side, idempotent).
+        await notifyBookingConfirmation(saved.id, lang);
+
+
         setStep({ name: "idle" });
 
         push({
@@ -848,7 +853,7 @@ export default function PuntyAssistant({
       setStep({ name: "idle" });
 
       try {
-        await requestConsultation({
+        const created = await requestConsultation({
           name: d.name,
           phone: d.phone,
           email: d.email,
@@ -861,6 +866,11 @@ export default function PuntyAssistant({
           wantsProQuote: Boolean(d.wantsProQuote),
           hairNotes: d.notes,
         });
+
+        // "Request received" to the client + notice to the salon.
+        await notifyConsultation(created.id, lang);
+
+
 
         push({
           role: "bot",
