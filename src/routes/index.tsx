@@ -41,7 +41,9 @@ import {
   businessConfig,
   formatOpeningHours,
   formatPrice,
+  formatServicePrice,
   getOpeningWindow,
+  pricingCopy,
   storageKey,
 } from "@/lib/business";
 
