@@ -1275,8 +1275,14 @@ const isActiveBooking = (status?: string) => {
 
               <div>
                 {confirmed.serviceLabel || confirmed.service} —{" "}
-                {formatServicePrice(confirmed.price, lang)}
+                {confirmed.pricePending
+                  ? pricingCopy[lang].onConsultation
+                  : formatServicePrice(
+                      confirmed.agreedPrice ?? confirmed.price,
+                      lang,
+                    )}
               </div>
+
 
               <div className="text-muted-foreground">
                 {confirmed.barber}
