@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import logo from "@/assets/logo.png";
-import {
-  services,
-  professionals as allProfessionals,
-  type Lang,
-} from "@/lib/i18n";
+import { services, type Lang } from "@/lib/i18n";
 import {
   businessConfig,
   formatOpeningHours,
@@ -17,6 +13,8 @@ import {
   createWalkin,
   isSlotTakenError,
   listBookings,
+  loadCatalogue,
+  requestConsultation,
 } from "@/lib/data";
 
 
@@ -40,7 +38,22 @@ type Step =
         | "time";
       data: any;
     }
-  | { name: "walkin_name" };
+  | { name: "walkin_name" }
+  | {
+      name: "consult";
+      field:
+        | "service"
+        | "date"
+        | "time"
+        | "alt"
+        | "quote"
+        | "budget"
+        | "name"
+        | "phone"
+        | "email"
+        | "notes";
+      data: any;
+    };
 
 const T = {
   es: {
@@ -48,7 +61,7 @@ const T = {
     online: "En línea",
     placeholder: "Escribe un mensaje...",
     initial: `Hola, soy el asistente de ${businessConfig.businessName}. ¿En qué puedo ayudarte?`,
-    quick: ["Reservar", "Cancelar", "Walk-in"],
+    quick: ["Reservar", "Consultar precio y horario", "Cancelar", "Walk-in"],
     menu: "Puedo ayudarte con: reservar, cancelar o entrar en walk-in.",
     askName: "Perfecto. ¿Cuál es tu nombre?",
     askPhone: "Gracias {n}. ¿Tu teléfono móvil UK?",
@@ -78,6 +91,27 @@ const T = {
     noProfessionalAvailable: "Ese horario ya no está disponible. Elige otro.",
     sundayWalkin: "Los domingos solo atendemos con reserva previa.",
     bookingError: "No se pudo guardar la reserva. Inténtalo otra vez.",
+    consultTitle: "Consultar precio y horario",
+    consultIntro:
+      "Puedo recoger tu solicitud para que la profesional te indique precio y horario. No confirmo precio ni hora.",
+    consultService:
+      "¿Qué servicio quieres consultar?\n\n{list}\n\nResponde con el número.",
+    consultDate: "¿Qué fecha prefieres? (YYYY-MM-DD)",
+    consultTime: "¿A qué hora preferirías? (HH:MM)",
+    consultAlt:
+      "¿Tienes una hora alternativa? (HH:MM o escribe \"no\")",
+    consultQuote:
+      "¿Prefieres que la profesional te indique el precio?\n\n1. Prefiero que la profesional me indique el precio\n2. Quiero indicar un presupuesto orientativo",
+    consultBudget: "¿Cuál es tu presupuesto orientativo? (£)",
+    consultName: "¿Cuál es tu nombre?",
+    consultPhone: "¿Tu teléfono móvil UK?",
+    consultEmail: "¿Tu email? (o escribe \"no\")",
+    consultNotes:
+      "¿Alguna nota sobre tu cabello o el estilo? (o escribe \"no\")",
+    consultSent:
+      "✅ Solicitud enviada.\n\n{s}\n📅 {d} {t}\n\nPrecio a consultar. La profesional te contactará para confirmar precio y horario. Pago en efectivo en el salón.",
+    consultError:
+      "No se pudo enviar la solicitud. Inténtalo otra vez.",
   },
 
   en: {
@@ -85,7 +119,7 @@ const T = {
     online: "Online",
     placeholder: "Type a message...",
     initial: `Hi, I'm the ${businessConfig.businessName} assistant. How can I help you?`,
-    quick: ["Book", "Cancel", "Walk-in"],
+    quick: ["Book", "Discuss price and time", "Cancel", "Walk-in"],
     menu: "I can help with: book, cancel or join the walk-in queue.",
     askName: "Great. What's your name?",
     askPhone: "Thanks {n}. Your UK mobile number?",
@@ -116,6 +150,24 @@ const T = {
     noProfessionalAvailable: "That time is no longer available. Please choose another.",
     sundayWalkin: "Sundays are booking only. Walk-ins unavailable.",
     bookingError: "Could not save the booking. Please try again.",
+    consultTitle: "Discuss price and time",
+    consultIntro:
+      "I can take your request so the professional can quote the price and time. I don't confirm price or time.",
+    consultService:
+      "Which service would you like to discuss?\n\n{list}\n\nReply with the number.",
+    consultDate: "Which date do you prefer? (YYYY-MM-DD)",
+    consultTime: "What time would you prefer? (HH:MM)",
+    consultAlt: "Any alternative time? (HH:MM or type \"no\")",
+    consultQuote:
+      "Would you like the professional to quote the price?\n\n1. I prefer the professional to quote the price\n2. I'd like to suggest a budget",
+    consultBudget: "What is your indicative budget? (£)",
+    consultName: "What's your name?",
+    consultPhone: "Your UK mobile number?",
+    consultEmail: "Your email? (or type \"no\")",
+    consultNotes: "Any notes about your hair or the style? (or type \"no\")",
+    consultSent:
+      "✅ Request sent.\n\n{s}\n📅 {d} {t}\n\nPrice on consultation. The professional will contact you to confirm price and time. Cash payment at the salon.",
+    consultError: "Could not send the request. Please try again.",
   },
 };
 
@@ -189,9 +241,10 @@ function isActiveBooking(status?: string) {
   return status === "confirmed" || status === "pending";
 }
 
-function staffForService(_service: (typeof services)[0]) {
-  return allProfessionals;
-}
+/** Services that require a price/time consultation (never quoted by the bot). */
+const CONSULTATION_SLUGS = services
+  .filter((s) => s.id !== "haircut")
+  .map((s) => s.id);
 
 function bookingOverlaps(
   booking: any,
