@@ -558,63 +558,26 @@ export default function PuntyAssistant({
       d.time = normalizedTime;
 
       try {
-        const existing = await listBookings();
-        const existingBookings = existing.data || [];
-        const professionals = staffForService(d.service);
+        // Availability and professional selection are resolved by the
+        // database inside create_booking (shared data layer, no duplication).
+        const booking = {
+          name: d.name,
+          phone: d.phone,
+          email: d.email,
+          service: d.service.id,
+          barber: d.barber,
+          date: d.date,
+          time: d.time,
+          comments: `Reserva creada desde ${businessConfig.assistantName}`,
+          price: d.service.price,
+          duration: d.service.duration,
+          createdAt: Date.now(),
+          status: "confirmed" as const,
+          business_id: businessConfig.businessId,
+        };
 
-        let finalProfessional = d.barber;
-
-        if (d.barber === "any") {
-          const available = findAvailableProfessional(
-            existingBookings,
-            professionals,
-            d.date,
-            d.time,
-            d.service.duration,
-          );
-
-          if (!available) {
-            return push({
-              role: "bot",
-              text: tt.noProfessionalAvailable,
-            });
-          }
-
-          finalProfessional = available;
-        } else {
-          const busy = professionalIsBusy(
-            existingBookings,
-            d.barber,
-            d.date,
-            d.time,
-            d.service.duration,
-          );
-
-          if (busy) {
-            return push({
-              role: "bot",
-              text: tt.doubleBooking,
-            });
-          }
-        }
-
-       const booking = {
-  name: d.name,
-  phone: d.phone,
-  email: d.email,
-  service: d.service.id,
-  barber: finalProfessional,
-  date: d.date,
-  time: d.time,
-  comments: `Reserva creada desde ${businessConfig.assistantName}`,
-  price: d.service.price,
-  duration: d.service.duration,
-  createdAt: Date.now(),
-  status: "confirmed" as const,
-  business_id: businessConfig.businessId,
-};
-
-        await createBooking(booking);
+        const saved = await createBooking(booking);
+        const finalProfessional = saved.barber || d.barber;
 
         setStep({ name: "idle" });
 
@@ -627,7 +590,7 @@ export default function PuntyAssistant({
             .replace("{t}", d.time)
             .replace("{b}", finalProfessional)
             .replace("{e}", d.email)
-            .replace("{p}", String(d.service.price))
+            .replace("{p}", String(saved.price ?? d.service.price))
             .replace("{c}", businessConfig.currencySymbol),
           quick: tt.quick,
         });
@@ -636,10 +599,11 @@ export default function PuntyAssistant({
 
         push({
           role: "bot",
-          text: tt.bookingError,
+          text: isSlotTakenError(error) ? tt.doubleBooking : tt.bookingError,
           quick: tt.quick,
         });
       }
+
     }
   };
 
