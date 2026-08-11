@@ -139,6 +139,30 @@ function AdminPage() {
     setEditForm({});
   }
 
+  /** Friendly text for the anti-overlap exclusion constraint (SQLSTATE 23P01). */
+  const OVERLAP_MESSAGE =
+    "Este profesional ya tiene una cita que se solapa con ese horario.";
+
+  function isOverlapError(e: any): boolean {
+    const code = String(e?.code || "");
+    const raw = `${e?.message || ""} ${e?.details || ""}`;
+    return (
+      code === "23P01" ||
+      raw.includes("BOOKING_SLOT_TAKEN") ||
+      raw.includes("appointments_no_overlap") ||
+      raw.includes("exclusion constraint")
+    );
+  }
+
+  function reportSaveError(e: any) {
+    if (isOverlapError(e)) {
+      alert(OVERLAP_MESSAGE);
+      return;
+    }
+    alert("No se ha podido guardar el cambio. Inténtalo de nuevo.");
+  }
+
+
   async function saveEdit() {
     if (!editing?.id) return;
 
@@ -220,7 +244,7 @@ function AdminPage() {
       await loadAppointments();
     } catch (e: any) {
       console.error("[admin] saveEdit failed", e);
-      alert("Error guardando: " + (e?.message || "unknown"));
+      reportSaveError(e);
     } finally {
       setSaving(false);
     }
@@ -235,7 +259,7 @@ function AdminPage() {
       .eq("id", item.id);
     if (error) {
       console.error("[admin] changeStatus failed", error);
-      alert("Error: " + error.message);
+      reportSaveError(error);
       return;
     }
     await loadAppointments();

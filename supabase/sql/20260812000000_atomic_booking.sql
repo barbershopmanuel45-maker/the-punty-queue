@@ -58,7 +58,10 @@ VALUES
   ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 6, '09:00', '19:00')
 ON CONFLICT (business_id, dow) DO NOTHING;
 
-GRANT SELECT ON public.business_settings TO anon, authenticated;
+-- business_settings holds internal configuration (timezone, initial status,
+-- slot interval). The public site never reads it: the RPC does. Keep it
+-- staff-only. business_hours IS public: the booking UI must show the window.
+GRANT SELECT ON public.business_settings TO authenticated;
 GRANT SELECT ON public.business_hours TO anon, authenticated;
 GRANT ALL ON public.business_settings TO service_role;
 GRANT ALL ON public.business_hours TO service_role;
@@ -66,8 +69,10 @@ ALTER TABLE public.business_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.business_hours ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Public read settings" ON public.business_settings;
-CREATE POLICY "Public read settings"
-ON public.business_settings FOR SELECT TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS "Staff read settings" ON public.business_settings;
+CREATE POLICY "Staff read settings"
+ON public.business_settings FOR SELECT TO authenticated
+USING (public.is_staff(auth.uid()));
 
 DROP POLICY IF EXISTS "Admins manage settings" ON public.business_settings;
 CREATE POLICY "Admins manage settings"

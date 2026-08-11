@@ -463,8 +463,22 @@ export async function updateBooking(
 
     if (error) {
       console.error("[supabase] updateBooking failed", error, row);
+
+      const raw = `${(error as any).code || ""} ${error.message || ""} ${
+        (error as any).details || ""
+      }`;
+
+      if (
+        raw.includes("23P01") ||
+        raw.includes("appointments_no_overlap") ||
+        raw.includes("exclusion constraint")
+      ) {
+        throw new BookingError(BOOKING_SLOT_TAKEN, error.message);
+      }
+
       throw error;
     }
+
 
     return rowToBooking(data);
   }
