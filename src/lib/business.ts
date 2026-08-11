@@ -54,9 +54,10 @@ export const businessConfig: BusinessConfig = {
   description:
     "Peluquería y centro de belleza. Reserva online tu cita de peluquería, color o belleza en segundos.",
 
-  city: "Tu ciudad",
-  postcode: "Tu código postal",
-  address: "Tu dirección",
+  city: "London",
+  postcode: "SE15 1JB",
+  address: "624 Old Kent Road",
+
 
   phone: "+00 000 000 000",
   email: "hola@example.com",
