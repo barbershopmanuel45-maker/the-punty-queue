@@ -61,10 +61,25 @@ serve(async (req) => {
 
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
+    // Business identity is configuration-driven (no brand hardcoded here).
+    const BUSINESS_NAME = Deno.env.get("BUSINESS_NAME") ?? "";
+    const EMAIL_FROM = Deno.env.get("EMAIL_FROM") ?? "";
+    const CURRENCY_SYMBOL = Deno.env.get("CURRENCY_SYMBOL") ?? "";
+    const BRAND_COLOR = Deno.env.get("BRAND_COLOR") ?? "#1d4ed8";
+
+    if (!RESEND_API_KEY || !EMAIL_FROM) {
+      return new Response(
+        JSON.stringify({ error: "Email provider is not configured" }),
+        { status: 500, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    const brand = esc(BUSINESS_NAME);
+
     const html = `
       <div style="font-family:Arial,sans-serif;padding:24px;background:#f5f5f5">
         <div style="max-width:600px;margin:auto;background:white;padding:32px;border-radius:12px">
-          <h1 style="color:#1d4ed8;">JuniorFADEfactory · Barber Shop</h1>
+          <h1 style="color:${esc(BRAND_COLOR)};">${brand}</h1>
 
           <h2>✅ Reserva confirmada</h2>
 
@@ -75,14 +90,14 @@ serve(async (req) => {
           <hr />
 
           <p><strong>Servicio:</strong> ${esc(service)}</p>
-          <p><strong>Barbero:</strong> ${esc(barber)}</p>
+          <p><strong>Profesional:</strong> ${esc(barber)}</p>
           <p><strong>Fecha:</strong> ${esc(appointment_date)}</p>
           <p><strong>Hora:</strong> ${esc(appointment_time)}</p>
-          <p><strong>Precio:</strong> £${esc(price)}</p>
+          <p><strong>Precio:</strong> ${esc(CURRENCY_SYMBOL)}${esc(price)}</p>
 
           <hr />
 
-          <p>Te esperamos en JuniorFADEfactory · Barber Shop.</p>
+          <p>Te esperamos en ${brand}.</p>
         </div>
       </div>
     `;
@@ -94,12 +109,13 @@ serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "JuniorFADEfactory <reservas@avatarapp.dev>",
+        from: EMAIL_FROM,
         to,
-        subject: "Reserva confirmada — JuniorFADEfactory · Barber Shop",
+        subject: `Reserva confirmada — ${BUSINESS_NAME}`,
         html,
       }),
     });
+
 
     const data = await resendResponse.json();
 

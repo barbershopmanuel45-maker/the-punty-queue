@@ -43,8 +43,9 @@ export type BusinessConfig = {
 };
 
 export const businessConfig: BusinessConfig = {
-  // TODO: replace with the real business UUID once the new Supabase project is ready.
-  businessId: "00000000-0000-0000-0000-000000000001",
+  // Stable UUID identifying this salon in the new Supabase project.
+  businessId: "7c8f0987-88d1-4a87-87a6-68db1573b5b6",
+
 
   businessName: "NOMBRE DEL SALÓN",
   legalName: "NOMBRE DEL SALÓN LTD",
