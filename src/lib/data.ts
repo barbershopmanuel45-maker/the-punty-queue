@@ -296,7 +296,10 @@ export type CatalogueStaff = {
 let cataloguePromise: Promise<{
   services: CatalogueService[];
   staff: CatalogueStaff[];
+  /** service slug -> compatible staff, straight from staff_services. */
+  staffByService: Record<string, CatalogueStaff[]>;
 }> | null = null;
+
 
 /** Reads the authoritative catalogue (public, read-only). Cached per session. */
 export function loadCatalogue() {
