@@ -853,7 +853,7 @@ export default function PuntyAssistant({
       setStep({ name: "idle" });
 
       try {
-        await requestConsultation({
+        const created = await requestConsultation({
           name: d.name,
           phone: d.phone,
           email: d.email,
