@@ -308,6 +308,7 @@ DECLARE
   _svc        public.services%ROWTYPE;
   _tz         text;
   _status     text;
+  _slot       integer;
   _start      timestamp;
   _end        timestamp;
   _local_now  timestamp;
