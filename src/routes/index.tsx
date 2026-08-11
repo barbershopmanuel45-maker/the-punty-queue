@@ -669,10 +669,37 @@ function Booking({
       (s) => s.id === form.service,
     ) || services[0];
 
-  const currentProfessionals =
-    selected.category === "hair"
-      ? hairProfessionals
-      : barberProfessionals;
+  // Compatible professionals come from staff_services (no hardcoded UUIDs).
+  const [currentProfessionals, setCurrentProfessionals] = useState<string[]>(
+    [],
+  );
+
+  useEffect(() => {
+    let alive = true;
+
+    staffForService(selected.id)
+      .then((staff) => {
+        if (!alive) return;
+        const names = staff.map((s) => s.name);
+        setCurrentProfessionals(names);
+        setForm((current) =>
+          current.barber !== "any" && !names.includes(current.barber)
+            ? { ...current, barber: names.length === 1 ? names[0] : "any" }
+            : names.length === 1 && current.barber === "any"
+              ? { ...current, barber: names[0] }
+              : current,
+        );
+      })
+      .catch((err) => {
+        console.error("[booking form] staff_services load failed", err);
+        if (alive) setCurrentProfessionals([]);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [selected.id]);
+
 
   useEffect(() => {
     const loadBookings = async () => {
