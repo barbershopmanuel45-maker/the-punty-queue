@@ -1030,23 +1030,9 @@ const isActiveBooking = (status?: string) => {
       const saved = await createBooking(booking);
       const finalProfessional = saved.barber || form.barber;
 
-      try {
-        if (booking.email) {
-          await supabase.functions.invoke("send-booking-confirmation", {
-            body: {
-              to: booking.email,
-              customer_name: booking.name,
-              service: lang === "es" ? selected.name_es : selected.name_en,
-              barber: finalProfessional,
-              appointment_date: booking.date,
-              appointment_time: booking.time,
-              price: saved.price,
-            },
-          });
-        }
-      } catch (emailError) {
-        console.error("Booking confirmation email failed:", emailError);
-      }
+      // Emails (client + business) are sent server-side and are idempotent.
+      await notifyBookingConfirmation(saved.id, lang);
+
 
       setConfirmed({
         ...booking,
