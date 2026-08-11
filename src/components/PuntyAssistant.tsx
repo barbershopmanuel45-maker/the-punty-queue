@@ -713,7 +713,7 @@ export default function PuntyAssistant({
             <button
               onClick={() => setOpen(false)}
               className="text-white/80 hover:text-white text-xl px-2"
-              aria-label="Cerrar"
+              aria-label={lang === "es" ? "Cerrar" : "Close"}
             >
               ×
             </button>
@@ -784,7 +784,7 @@ export default function PuntyAssistant({
             <button
               type="submit"
               className="w-10 h-10 rounded-full bg-gradient-brand text-white flex items-center justify-center hover:scale-105 transition flex-shrink-0"
-              aria-label="Enviar"
+              aria-label={lang === "es" ? "Enviar" : "Send"}
             >
               ➤
             </button>
