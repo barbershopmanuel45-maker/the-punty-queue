@@ -122,7 +122,9 @@ export const translations = {
   },
 
   en: {
+    brandTagline: "HAIR & BEAUTY",
     nav: {
+
       home: "Home",
       services: "Services",
       booking: "Book",
