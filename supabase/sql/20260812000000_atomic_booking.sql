@@ -477,7 +477,14 @@ AS $$
     a.business_id::text
   FROM public.appointments a
   WHERE a.status IN ('pending', 'confirmed')
-    AND a.appointment_date >= CURRENT_DATE
+    -- Local business date, not the session's CURRENT_DATE (UTC).
+    AND a.appointment_date >= (
+      now() AT TIME ZONE coalesce(
+        (SELECT bs.timezone FROM public.business_settings bs
+          WHERE bs.business_id = '7c8f0987-88d1-4a87-87a6-68db1573b5b6'),
+        'Europe/London'
+      )
+    )::date
     AND (_business_id IS NULL OR a.business_id::text = _business_id);
 $$;
 
