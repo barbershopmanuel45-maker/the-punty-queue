@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
+import { businessConfig } from "@/lib/business";
 import { supabase } from "../lib/supabase";
 
 export const Route = createFileRoute("/login")({
@@ -46,7 +47,7 @@ function LoginPage() {
         </h1>
 
         <p className="mb-6 text-center text-muted-foreground">
-          JuniorFADEfactory · Barber Shop
+          {businessConfig.businessName} · {businessConfig.tagline}
         </p>
 
         <div className="space-y-4">

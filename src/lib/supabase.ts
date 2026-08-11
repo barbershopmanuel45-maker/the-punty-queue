@@ -1,8 +1,33 @@
 import { createClient } from "@supabase/supabase-js";
+import { storageKey } from "./business";
 
-const SUPABASE_URL = "https://icteqntznovzbmgclfik.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljdGVxbnR6bm92emJtZ2NsZmlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mzg3MDksImV4cCI6MjA5MzQxNDcwOX0.Z8JA6SrYyvquLbDPrSgXyqUJAUajK8DJm4amL1WQslQ";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as
+  | string
+  | undefined;
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, storageKey: "elpunty_auth" },
-});
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  const message =
+    "[config] Faltan las variables de entorno VITE_SUPABASE_URL y/o VITE_SUPABASE_ANON_KEY. " +
+    "Configúralas para conectar la aplicación al nuevo proyecto Supabase.";
+
+  if (import.meta.env.DEV) {
+    console.error(message);
+  } else {
+    console.warn(message);
+  }
+}
+
+export const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+
+export const supabase = createClient(
+  SUPABASE_URL || "https://missing-config.supabase.co",
+  SUPABASE_ANON_KEY || "missing-anon-key",
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      storageKey: storageKey("auth"),
+    },
+  },
+);

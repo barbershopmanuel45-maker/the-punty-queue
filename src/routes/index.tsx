@@ -21,6 +21,14 @@ import {
 import PuntyAssistant from "@/components/PuntyAssistant";
 
 import {
+  businessConfig,
+  formatOpeningHours,
+  formatPrice,
+  getOpeningWindow,
+  storageKey,
+} from "@/lib/business";
+
+import {
   createBooking,
   createWalkin,
   listBookings,
@@ -33,67 +41,32 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "JuniorFADEfactory | Barber Shop London SE1" },
+      { title: `${businessConfig.businessName} | ${businessConfig.tagline}` },
+      { name: "description", content: businessConfig.description },
+      { name: "author", content: businessConfig.businessName },
 
       {
-        name: "description",
-        content:
-          "Professional barber shop in London. Online booking, walk-ins, skin fades, classic cuts and VIP grooming services.",
+        property: "og:title",
+        content: `${businessConfig.businessName} | ${businessConfig.tagline}`,
       },
-
-      { property: "og:title", content: "JuniorFADEfactory | Barber Shop London SE1" },
-
-      {
-        property: "og:description",
-        content:
-          "Professional barber shop in London. Online booking, walk-ins, skin fades, classic cuts and VIP grooming services.",
-      },
-
+      { property: "og:description", content: businessConfig.description },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: businessConfig.website },
 
-      {
-        property: "og:image",
-        content: "/project-preview.png",
-      },
-
-      {
-        name: "twitter:card",
-        content: "summary_large_image",
-      },
-
+      { name: "twitter:card", content: "summary_large_image" },
       {
         name: "twitter:title",
-        content: "JuniorFADEfactory | Barber Shop London SE1",
+        content: `${businessConfig.businessName} | ${businessConfig.tagline}`,
       },
-
-      {
-        name: "twitter:description",
-        content: "Professional barber shop in London. Online booking, walk-ins, skin fades, classic cuts and VIP grooming services.",
-      },
-
-      {
-        name: "twitter:image",
-        content: "/project-preview.png",
-      },
-
-      {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1",
-      },
+      { name: "twitter:description", content: businessConfig.description },
     ],
 
     links: [
-      {
-        rel: "icon",
-        type: "image/png",
-        href: "/favicon.png",
-      },
-
+      { rel: "canonical", href: businessConfig.website },
       {
         rel: "preconnect",
         href: "https://fonts.googleapis.com",
       },
-
       {
         rel: "stylesheet",
         href:
@@ -110,7 +83,7 @@ function Index() {
 
   useEffect(() => {
     const stored = localStorage.getItem(
-      "elpunty_lang",
+      storageKey("lang"),
     ) as Lang | null;
 
     if (stored === "es" || stored === "en") {
@@ -119,7 +92,7 @@ function Index() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("elpunty_lang", lang);
+    localStorage.setItem(storageKey("lang"), lang);
   }, [lang]);
 
   const t = translations[lang];
@@ -176,17 +149,17 @@ function Header({
         >
           <img
             src={logo}
-            alt="JuniorFADEfactory"
+            alt={businessConfig.businessName}
             className="w-11 h-11 object-contain"
           />
 
           <div className="leading-tight">
             <div className="font-bold text-brand-blue text-lg">
-              Junior<span className="text-brand-red">FADE</span>factory
+              {businessConfig.businessName}
             </div>
 
-            <div className="text-[10px] tracking-[0.2em] text-brand-gray">
-              BARBER SHOP
+            <div className="text-[10px] tracking-[0.2em] text-brand-gray uppercase">
+              {businessConfig.tagline}
             </div>
           </div>
         </a>
@@ -269,7 +242,7 @@ function Hero({ t }: { t: any }) {
       <div className="absolute inset-0">
         <img
           src={hero}
-          alt="JuniorFADEfactory interior"
+          alt={businessConfig.businessName}
           className="w-full h-full object-cover"
         />
 
@@ -279,7 +252,7 @@ function Hero({ t }: { t: any }) {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-28 md:py-40">
         <div className="max-w-2xl text-white animate-fade-up">
           <span className="inline-block px-3 py-1 bg-brand-red/90 rounded-full text-xs font-semibold tracking-wider mb-6">
-            LONDON · SE1
+            {businessConfig.city.toUpperCase()} · {businessConfig.postcode}
           </span>
 
           <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-5">
@@ -478,7 +451,7 @@ function Services({
               </div>
 
               <div className="text-brand-blue font-bold text-lg">
-                £{s.price}
+                {formatPrice(s.price)}
               </div>
             </div>
           ))}
@@ -756,15 +729,14 @@ const isActiveBooking = (status?: string) => {
     time: string,
     duration: number,
   ) => {
-    const day = getDayOfWeek(date);
+    const window = getOpeningWindow(getDayOfWeek(date));
+
+    if (!window) return false;
+
     const start = timeToMinutes(time);
     const end = start + duration;
 
-    if (day === 0) {
-      return start >= 10 * 60 && end <= 17 * 60;
-    }
-
-    return start >= 9 * 60 && end <= 19 * 60;
+    return start >= window.start && end <= window.end;
   };
 
   const bookingOverlaps = (
@@ -860,19 +832,19 @@ const isActiveBooking = (status?: string) => {
 
     if (!form.date) return slots;
 
-    const day = getDayOfWeek(form.date);
-    const startHour = day === 0 ? 10 : 9;
-    const endHour = day === 0 ? 17 : 19;
+    const window = getOpeningWindow(getDayOfWeek(form.date));
 
-    for (let hour = startHour; hour < endHour; hour++) {
-      for (const minute of [0, 30]) {
-        const hh = String(hour).padStart(2, "0");
-        const mm = String(minute).padStart(2, "0");
-        const slot = `${hh}:${mm}`;
+    if (!window) return slots;
 
-        if (isValidOpeningTime(form.date, slot, selected.duration)) {
-          slots.push(slot);
-        }
+    const step = businessConfig.slotIntervalMinutes;
+
+    for (let minutes = window.start; minutes < window.end; minutes += step) {
+      const hh = String(Math.floor(minutes / 60)).padStart(2, "0");
+      const mm = String(minutes % 60).padStart(2, "0");
+      const slot = `${hh}:${mm}`;
+
+      if (isValidOpeningTime(form.date, slot, selected.duration)) {
+        slots.push(slot);
       }
     }
 
@@ -930,7 +902,9 @@ const isActiveBooking = (status?: string) => {
       !isValidOpeningTime(form.date, form.time, selected.duration)
     ) {
       setError(
-        "Horario no disponible. Lunes a sábado 09:00–19:00. Domingos 10:00–17:00.",
+        `Horario no disponible. Lunes a sábado ${formatOpeningHours(
+          1,
+        )}. Domingos ${formatOpeningHours(0)}.`,
       );
       return;
     }
@@ -1194,7 +1168,7 @@ const isActiveBooking = (status?: string) => {
           >
             <img
               src={logo}
-              alt="JuniorFADEfactory"
+              alt={businessConfig.businessName}
               className="w-20 h-20 object-contain mx-auto mb-4"
             />
 
@@ -1218,8 +1192,8 @@ const isActiveBooking = (status?: string) => {
               </div>
 
               <div>
-                {confirmed.serviceLabel || confirmed.service} — £
-                {confirmed.price}
+                {confirmed.serviceLabel || confirmed.service} —{" "}
+                {formatPrice(confirmed.price)}
               </div>
 
               <div className="text-muted-foreground">
@@ -1266,14 +1240,14 @@ function Walkin({ t }: { t: any }) {
   const [myId, setMyId] = useState<number | null>(null);
 
   useEffect(() => {
-    const q = JSON.parse(localStorage.getItem("elpunty_queue") || "[]");
+    const q = JSON.parse(localStorage.getItem(storageKey("queue")) || "[]");
     const filtered = q.filter(
       (p: any) => Date.now() - p.ts < 4 * 60 * 60 * 1000,
     );
 
     setQueue(filtered);
 
-    const m = localStorage.getItem("elpunty_myqueue");
+    const m = localStorage.getItem(storageKey("myqueue"));
     if (m) setMyId(Number(m));
   }, []);
 
@@ -1284,8 +1258,8 @@ function Walkin({ t }: { t: any }) {
     setQueue(next);
     setMyId(id);
 
-    localStorage.setItem("elpunty_queue", JSON.stringify(next));
-    localStorage.setItem("elpunty_myqueue", String(id));
+    localStorage.setItem(storageKey("queue"), JSON.stringify(next));
+    localStorage.setItem(storageKey("myqueue"), String(id));
 
     await createWalkin(`Walk-in ${id}`);
   };
@@ -1384,44 +1358,49 @@ function Footer({ t }: { t: any }) {
       <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-10">
         <div>
           <div className="flex items-center gap-3 mb-4">
-            <img src={logo} alt="JuniorFADEfactory" className="w-12 h-12 object-contain" />
+            <img
+              src={logo}
+              alt={businessConfig.businessName}
+              className="w-12 h-12 object-contain"
+            />
 
             <div>
               <div className="font-bold text-lg">
-                Junior<span className="text-brand-red">FADE</span>factory
+                {businessConfig.businessName}
               </div>
-              <div className="text-[10px] tracking-[0.2em] text-white/60">
-                BARBER SHOP
+              <div className="text-[10px] tracking-[0.2em] text-white/60 uppercase">
+                {businessConfig.tagline}
               </div>
             </div>
           </div>
 
           <p className="text-sm text-white/60 max-w-xs">
-            London's modern barbershop experience. Tradition meets technology.
+            {businessConfig.description}
           </p>
         </div>
 
         <div>
           <h4 className="font-bold mb-3 text-brand-red">{t.footer.address}</h4>
           <p className="text-sm text-white/70 leading-relaxed">
-            212 Old Kent Rd
+            {businessConfig.address}
             <br />
-            London SE1 5TY
+            {businessConfig.city} {businessConfig.postcode}
           </p>
         </div>
 
         <div>
           <h4 className="font-bold mb-3 text-brand-red">{t.footer.hours}</h4>
           <p className="text-sm text-white/70 leading-relaxed">
-            {t.footer.mon}
+            {t.footer.weekdays}: {formatOpeningHours(1)}
             <br />
-            {t.footer.sun}
+            {t.footer.sunday}: {formatOpeningHours(0)}
           </p>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto mt-12 pt-6 border-t border-white/10 text-xs text-white/50 text-center">
-        ©️ {new Date().getFullYear()} JuniorFADEfactory Barber Shop. {t.footer.rights}
+        ©️ {new Date().getFullYear()} {businessConfig.businessName}.{" "}
+        {t.footer.rights}
       </div>
     </footer>
   );

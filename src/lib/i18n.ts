@@ -11,14 +11,14 @@ export const translations = {
     },
     cta: "Reservar ahora",
     hero: {
-      title: "Tu corte, a tu hora. Sin esperas.",
+      title: "Tu cita, a tu hora. Sin esperas.",
       subtitle: "Reserva online o entra en cola sin complicaciones.",
       book: "Reservar",
       how: "Cómo funciona",
     },
     problem: {
       title: "El problema",
-      subtitle: "Las barberías tradicionales pierden clientes cada día.",
+      subtitle: "Los salones tradicionales pierden clientes cada día.",
       items: [
         { t: "Alta demanda", d: "Más clientes de los que se pueden atender." },
         { t: "Saturación", d: "Horas pico que colapsan el local." },
@@ -66,7 +66,7 @@ export const translations = {
       duration: "Duración",
       submit: "Confirmar reserva",
       success: "¡Reserva confirmada!",
-      successDesc: "Te esperamos en El Punty Barber Shop.",
+      successDesc: "Te esperamos en nuestro salón.",
       close: "Cerrar",
       loadingTimes: "Cargando horarios...",
       selectTime: "Selecciona una hora",
@@ -82,7 +82,7 @@ export const translations = {
       position: "Tu posición",
     },
     benefits: {
-      title: "Por qué El Punty",
+      title: "Por qué elegirnos",
       items: [
         { t: "Sin esperas", d: "Tu tiempo vale. Lo respetamos." },
         { t: "Más control", d: "Tú decides cuándo y con quién." },
@@ -93,8 +93,8 @@ export const translations = {
     footer: {
       address: "Dirección",
       hours: "Horario",
-      mon: "Lunes-Sábado: 09:00–19:00",
-      sun: "Domingo: 10:00–17:00",
+      weekdays: "Lunes-Sábado",
+      sunday: "Domingo",
       rights: "Todos los derechos reservados.",
     },
   },
@@ -109,14 +109,14 @@ export const translations = {
     },
     cta: "Book now",
     hero: {
-      title: "Your cut, on your time. No waiting.",
+      title: "Your appointment, on your time. No waiting.",
       subtitle: "Book online or join the queue, hassle-free.",
       book: "Book now",
       how: "How it works",
     },
     problem: {
       title: "The problem",
-      subtitle: "Traditional barbershops lose customers every day.",
+      subtitle: "Traditional salons lose customers every day.",
       items: [
         { t: "High demand", d: "More clients than can be handled." },
         { t: "Saturation", d: "Peak hours overwhelm the shop." },
@@ -164,7 +164,7 @@ export const translations = {
       duration: "Duration",
       submit: "Confirm booking",
       success: "Booking confirmed!",
-      successDesc: "We'll see you at El Punty Barber Shop.",
+      successDesc: "We'll see you at our salon.",
       close: "Close",
       loadingTimes: "Loading times...",
       selectTime: "Select a time",
@@ -180,7 +180,7 @@ export const translations = {
       position: "Your position",
     },
     benefits: {
-      title: "Why El Punty",
+      title: "Why choose us",
       items: [
         { t: "No waiting", d: "Your time matters. We respect it." },
         { t: "More control", d: "You decide when and with whom." },
@@ -191,28 +191,54 @@ export const translations = {
     footer: {
       address: "Address",
       hours: "Hours",
-      mon: "Monday-Saturday: 09:00–19:00",
-      sun: "Sunday: 10:00–17:00",
+      weekdays: "Monday-Saturday",
+      sunday: "Sunday",
       rights: "All rights reserved.",
     },
   },
 };
 
+// Placeholder catalogue for the new salon. The final catalogue comes later.
 export const services = [
-  { id: "buzz_cut", icon: "🪒", category: "barber", name_es: "Corte al ras", name_en: "Buzz cut", price: 14, duration: 20 },
-  { id: "kids", icon: "🧒", category: "barber", name_es: "Niños", name_en: "Kids", price: 16, duration: 25 },
-  { id: "oap", icon: "👴", category: "barber", name_es: "Jubilados mayores de 60", name_en: "OAP / Over 60s", price: 10, duration: 25 },
-  { id: "haircut", icon: "✂️", category: "barber", name_es: "Corte de pelo", name_en: "Haircut", price: 20, duration: 30 },
-  { id: "skin_fade", icon: "💈", category: "barber", name_es: "Degradado", name_en: "Skin fade", price: 22, duration: 35 },
-  { id: "beard_razor", icon: "🪒", category: "barber", name_es: "Recorte de barba con navaja", name_en: "Beard trim with razor", price: 16, duration: 25 },
-  { id: "skin_fade_beard", icon: "🧔", category: "barber", name_es: "Degradado y barba", name_en: "Skin fade and beard", price: 26, duration: 45 },
-  { id: "beard_trim", icon: "🧔", category: "barber", name_es: "Recorte de barba", name_en: "Beard trim", price: 6, duration: 15 },
-  { id: "eyebrow_waxing", icon: "🎨", category: "barber", name_es: "Depilación de cejas", name_en: "Eyebrow waxing", price: 5, duration: 15 },
-  { id: "mens_eyebrows", icon: "👁️", category: "barber", name_es: "Cejas hombre", name_en: "Men's eyebrows", price: 2, duration: 10 },
-  { id: "royal_vip", icon: "⭐", category: "barber", name_es: "Servicio VIP completo ROYAL", name_en: "ROYAL Full VIP Service", price: 36, duration: 60 },
+  {
+    id: "cut_styling",
+    icon: "✂️",
+    category: "hair",
+    name_es: "Corte y peinado",
+    name_en: "Cut & styling",
+    category_es: "Peluquería",
+    category_en: "Hair",
+    price: 35,
+    duration: 60,
+  },
+  {
+    id: "color",
+    icon: "🎨",
+    category: "hair",
+    name_es: "Color",
+    name_en: "Colour",
+    category_es: "Color",
+    category_en: "Colour",
+    price: 65,
+    duration: 120,
+  },
+  {
+    id: "manicure",
+    icon: "💅",
+    category: "beauty",
+    name_es: "Manicura",
+    name_en: "Manicure",
+    category_es: "Belleza",
+    category_en: "Beauty",
+    price: 30,
+    duration: 60,
+  },
 ];
 
-export const barberProfessionals = ["Junior"];
-export const hairProfessionals: string[] = [];
+// Single source of truth for professionals (home, booking, assistant, admin).
+export const professionals = ["Profesional 1", "Profesional 2"];
 
-export const barbers = ["Junior"];
+// Aliases kept so existing category-based lookups keep working.
+export const barberProfessionals = professionals;
+export const hairProfessionals = professionals;
+export const barbers = professionals;

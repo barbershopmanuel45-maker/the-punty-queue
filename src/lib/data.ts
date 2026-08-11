@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { businessConfig, storageKey } from "./business";
 import { services } from "./i18n";
 
 export type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled";
@@ -52,9 +53,9 @@ export type ReminderUI = {
   business_id?: string | null;
 };
 
-const BK = "elpunty_bookings";
-const WK = "elpunty_queue";
-const BIZ_KEY = "elpunty_business_id";
+const BK = storageKey("bookings");
+const WK = storageKey("queue");
+
 
 export type Source = "supabase" | "localStorage";
 
@@ -213,21 +214,18 @@ function lsSet<T>(key: string, value: T[]) {
   }
 }
 
+/**
+ * This app represents a single business. The identifier always comes from
+ * the central configuration; the business_id column is kept in every table
+ * so the schema stays compatible with a future multi-business version.
+ */
 export function getCurrentBusinessId(): string | null {
-  try {
-    return localStorage.getItem(BIZ_KEY);
-  } catch {
-    return null;
-  }
+  return businessConfig.businessId || null;
 }
 
-export function setCurrentBusinessId(id: string | null) {
-  try {
-    if (id) localStorage.setItem(BIZ_KEY, id);
-    else localStorage.removeItem(BIZ_KEY);
-  } catch {
-    // ignore
-  }
+/** Kept for API compatibility. The business identity is configuration-driven. */
+export function setCurrentBusinessId(_id: string | null) {
+  // no-op: single-business application
 }
 
 async function hasAuthenticatedSession(): Promise<boolean> {
