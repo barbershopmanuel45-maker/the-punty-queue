@@ -167,11 +167,20 @@ export const translations = {
       subtitle: "Professional quality. Honest prices.",
       min: "min",
     },
+    styles: {
+      title: "Braiding & hairstyles",
+      subtitle: "Our braiding, twist and crochet styles.",
+      comingSoon: "Online booking coming soon",
+      book: "Book",
+      view: "View service",
+    },
     reviews: {
       title: "What our clients say",
       subtitle: "Real reviews from our clients.",
       empty: "No reviews available yet.",
+      loading: "Loading reviews...",
     },
+
     booking: {
       title: "Book your appointment",
       subtitle: "Fill in the form and get instant confirmation.",
