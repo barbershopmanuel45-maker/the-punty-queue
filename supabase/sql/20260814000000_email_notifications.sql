@@ -53,10 +53,10 @@ SELECT cron.schedule(
   '*/15 * * * *',
   $$
   SELECT net.http_post(
-    url     := '<APP_URL>/api/public/email/reminders',
+    url     := 'https://juniorfadefactory.lovable.app/api/public/email/reminders',
     headers := jsonb_build_object(
                  'Content-Type', 'application/json',
-                 'x-cron-secret', '<CRON_SECRET>'),
+                 'x-cron-secret', 'c65097f36b2d26f9a504b2cfa3011541e9b73a3d8c85ffc95a9aaa5daa7156d6'),
     body    := '{}'::jsonb
   );
   $$
