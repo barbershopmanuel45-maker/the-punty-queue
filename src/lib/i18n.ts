@@ -11,14 +11,14 @@ export const translations = {
     },
     cta: "Reservar ahora",
     hero: {
-      title: "Tu corte, a tu hora. Sin esperas.",
+      title: "Tu cita, a tu hora. Sin esperas.",
       subtitle: "Reserva online o entra en cola sin complicaciones.",
       book: "Reservar",
       how: "Cómo funciona",
     },
     problem: {
       title: "El problema",
-      subtitle: "Las barberías tradicionales pierden clientes cada día.",
+      subtitle: "Los salones tradicionales pierden clientes cada día.",
       items: [
         { t: "Alta demanda", d: "Más clientes de los que se pueden atender." },
         { t: "Saturación", d: "Horas pico que colapsan el local." },
@@ -66,7 +66,7 @@ export const translations = {
       duration: "Duración",
       submit: "Confirmar reserva",
       success: "¡Reserva confirmada!",
-      successDesc: "Te esperamos en El Punty Barber Shop.",
+      successDesc: "Te esperamos en nuestro salón.",
       close: "Cerrar",
       loadingTimes: "Cargando horarios...",
       selectTime: "Selecciona una hora",
@@ -82,7 +82,7 @@ export const translations = {
       position: "Tu posición",
     },
     benefits: {
-      title: "Por qué El Punty",
+      title: "Por qué elegirnos",
       items: [
         { t: "Sin esperas", d: "Tu tiempo vale. Lo respetamos." },
         { t: "Más control", d: "Tú decides cuándo y con quién." },
@@ -109,14 +109,14 @@ export const translations = {
     },
     cta: "Book now",
     hero: {
-      title: "Your cut, on your time. No waiting.",
+      title: "Your appointment, on your time. No waiting.",
       subtitle: "Book online or join the queue, hassle-free.",
       book: "Book now",
       how: "How it works",
     },
     problem: {
       title: "The problem",
-      subtitle: "Traditional barbershops lose customers every day.",
+      subtitle: "Traditional salons lose customers every day.",
       items: [
         { t: "High demand", d: "More clients than can be handled." },
         { t: "Saturation", d: "Peak hours overwhelm the shop." },
@@ -164,7 +164,7 @@ export const translations = {
       duration: "Duration",
       submit: "Confirm booking",
       success: "Booking confirmed!",
-      successDesc: "We'll see you at El Punty Barber Shop.",
+      successDesc: "We'll see you at our salon.",
       close: "Close",
       loadingTimes: "Loading times...",
       selectTime: "Select a time",
@@ -180,7 +180,7 @@ export const translations = {
       position: "Your position",
     },
     benefits: {
-      title: "Why El Punty",
+      title: "Why choose us",
       items: [
         { t: "No waiting", d: "Your time matters. We respect it." },
         { t: "More control", d: "You decide when and with whom." },
