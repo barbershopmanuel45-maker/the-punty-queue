@@ -2,6 +2,7 @@ export type Lang = "es" | "en";
 
 export const translations = {
   es: {
+    brandTagline: "PELUQUERÍA & BELLEZA",
     nav: {
       home: "Inicio",
       services: "Servicios",
@@ -10,6 +11,7 @@ export const translations = {
       contact: "Contacto",
     },
     cta: "Reservar ahora",
+
     hero: {
       title: "Tu cita, a tu hora. Sin esperas.",
       subtitle: "Reserva online o entra en cola sin complicaciones.",
