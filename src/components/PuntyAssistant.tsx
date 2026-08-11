@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import logo from "@/assets/logo.png";
 import { services, type Lang } from "@/lib/i18n";
+import { notifyConsultation } from "@/lib/email/notify";
 import {
   businessConfig,
   formatOpeningHours,

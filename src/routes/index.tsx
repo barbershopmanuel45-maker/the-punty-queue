@@ -59,6 +59,7 @@ import {
 
 
 import { supabase } from "@/lib/supabase";
+import { notifyBookingConfirmation } from "@/lib/email/notify";
 
 export const Route = createFileRoute("/")({
   head: () => ({
