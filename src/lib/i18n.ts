@@ -82,6 +82,14 @@ export const translations = {
       loadingTimes: "Cargando horarios...",
       selectTime: "Selecciona una hora",
       chooseDateFirst: "Primero elige fecha",
+      saving: "Guardando…",
+      invalidPhone: "Introduce un móvil UK válido. Ejemplo: 07788998899",
+      invalidEmail: "Introduce un email válido.",
+      pastDate: "No puedes reservar una fecha pasada.",
+      outsideHours: "Horario no disponible. Abrimos todos los días {h}.",
+      slotTaken:
+        "Este horario ya no está disponible. Selecciona otro horario.",
+      saveError: "No se pudo guardar la reserva. Inténtalo otra vez.",
     },
     walkin: {
       title: "Walk-in: cola virtual",
@@ -102,12 +110,15 @@ export const translations = {
       ],
     },
     footer: {
+      description:
+        "Peluquería y centro de belleza. Reserva online tu cita de peluquería, color o belleza en segundos.",
       address: "Dirección",
       hours: "Horario",
-      weekdays: "Lunes-Sábado",
+      weekdays: "Lunes–Sábado",
       sunday: "Domingo",
       rights: "Todos los derechos reservados.",
     },
+
   },
 
   en: {
