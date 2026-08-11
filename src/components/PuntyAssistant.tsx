@@ -329,7 +329,33 @@ export default function PuntyAssistant({
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [step, setStep] = useState<Step>({ name: "idle" });
+  const [staffMap, setStaffMap] = useState<Record<string, string[]>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Compatible professionals come from staff_services (never hardcoded).
+  useEffect(() => {
+    let alive = true;
+
+    loadCatalogue()
+      .then((catalogue) => {
+        if (!alive) return;
+        const map: Record<string, string[]> = {};
+        for (const [slug, staff] of Object.entries(catalogue.staffByService)) {
+          map[slug] = staff.map((member) => member.name);
+        }
+        setStaffMap(map);
+      })
+      .catch((err: unknown) => {
+        console.error("[assistant] catalogue load failed", err);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const staffForService = (service: (typeof services)[0]) =>
+    staffMap[service.id] || [];
 
   const tt = T[lang];
 
@@ -530,6 +556,16 @@ export default function PuntyAssistant({
       });
 
       const professionals = staffForService(d.service);
+
+      if (professionals.length === 1) {
+        d.barber = professionals[0];
+
+        setStep({ name: "book", field: "date", data: d });
+
+        push({ role: "bot", text: tt.askDate });
+
+        return;
+      }
 
       const list = [
         `1. ${lang === "es" ? "Cualquiera disponible" : "Anyone available"}`,
