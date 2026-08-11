@@ -47,16 +47,20 @@ CREATE TABLE IF NOT EXISTS public.business_hours (
   CHECK (close_time > open_time)
 );
 
-INSERT INTO public.business_hours (business_id, dow, open_time, close_time)
+-- Brightobarber: lunes a domingo, 10:00–22:00.
+INSERT INTO public.business_hours (business_id, dow, open_time, close_time, is_closed)
 VALUES
-  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 0, '10:00', '17:00'),
-  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 1, '09:00', '19:00'),
-  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 2, '09:00', '19:00'),
-  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 3, '09:00', '19:00'),
-  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 4, '09:00', '19:00'),
-  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 5, '09:00', '19:00'),
-  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 6, '09:00', '19:00')
-ON CONFLICT (business_id, dow) DO NOTHING;
+  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 0, '10:00', '22:00', false),
+  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 1, '10:00', '22:00', false),
+  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 2, '10:00', '22:00', false),
+  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 3, '10:00', '22:00', false),
+  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 4, '10:00', '22:00', false),
+  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 5, '10:00', '22:00', false),
+  ('7c8f0987-88d1-4a87-87a6-68db1573b5b6', 6, '10:00', '22:00', false)
+ON CONFLICT (business_id, dow) DO UPDATE
+SET open_time  = EXCLUDED.open_time,
+    close_time = EXCLUDED.close_time,
+    is_closed  = EXCLUDED.is_closed;
 
 -- business_settings holds internal configuration (timezone, initial status,
 -- slot interval). The public site never reads it: the RPC does. Keep it
@@ -304,6 +308,7 @@ DECLARE
   _svc        public.services%ROWTYPE;
   _tz         text;
   _status     text;
+  _slot       integer;
   _start      timestamp;
   _end        timestamp;
   _local_now  timestamp;
@@ -339,11 +344,20 @@ BEGIN
     RAISE EXCEPTION 'SERVICE_NOT_AVAILABLE' USING ERRCODE = 'P0001';
   END IF;
 
-  SELECT timezone, initial_status INTO _tz, _status
+  SELECT timezone, initial_status, slot_interval INTO _tz, _status, _slot
   FROM public.business_settings WHERE business_id = _biz;
 
   _tz := coalesce(_tz, 'Europe/London');
   _status := coalesce(_status, 'confirmed');
+  _slot := coalesce(_slot, 30);
+
+  -- The requested time must fall on the slot grid (no seconds, no 10:07).
+  IF EXTRACT(SECOND FROM _appointment_time) <> 0
+     OR (EXTRACT(HOUR FROM _appointment_time)::int * 60
+         + EXTRACT(MINUTE FROM _appointment_time)::int) % _slot <> 0 THEN
+    RAISE EXCEPTION 'INVALID_SLOT_INTERVAL' USING ERRCODE = 'P0001';
+  END IF;
+
 
   _start := _appointment_date + _appointment_time;
   _end   := _start + make_interval(mins => _svc.duration_minutes);
@@ -463,7 +477,14 @@ AS $$
     a.business_id::text
   FROM public.appointments a
   WHERE a.status IN ('pending', 'confirmed')
-    AND a.appointment_date >= CURRENT_DATE
+    -- Local business date, not the session's CURRENT_DATE (UTC).
+    AND a.appointment_date >= (
+      now() AT TIME ZONE coalesce(
+        (SELECT bs.timezone FROM public.business_settings bs
+          WHERE bs.business_id = '7c8f0987-88d1-4a87-87a6-68db1573b5b6'),
+        'Europe/London'
+      )
+    )::date
     AND (_business_id IS NULL OR a.business_id::text = _business_id);
 $$;
 
