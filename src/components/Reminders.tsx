@@ -10,6 +10,7 @@ import {
   type ReminderUI,
 } from "@/lib/data";
 import { fetchProfile, type Profile } from "@/lib/profile";
+import { businessConfig } from "@/lib/business";
 
 const ADMIN_EMAIL = (import.meta.env.VITE_ADMIN_EMAIL as string | undefined)?.toLowerCase() || "";
 
@@ -25,7 +26,7 @@ const T = {
     min: "min",
     sentVia: "Enviado por",
     msg: (n: string, t: string) =>
-      `Hola ${n}, te recordamos tu cita en JuniorFADEfactory a las ${t}.`,
+      `Hola ${n}, te recordamos tu cita en ${businessConfig.businessName} a las ${t}.`,
     badgePending: "Pendiente",
     badgeSent: "Enviado",
     auto: "Conectado a Supabase",
@@ -44,7 +45,7 @@ const T = {
     min: "min",
     sentVia: "Sent via",
     msg: (n: string, t: string) =>
-      `Hi ${n}, this is a reminder of your appointment at JuniorFADEfactory at ${t}.`,
+      `Hi ${n}, this is a reminder of your appointment at ${businessConfig.businessName} at ${t}.`,
     badgePending: "Pending",
     badgeSent: "Sent",
     auto: "Connected to Supabase",

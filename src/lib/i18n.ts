@@ -93,8 +93,8 @@ export const translations = {
     footer: {
       address: "Dirección",
       hours: "Horario",
-      mon: "Lunes-Sábado: 09:00–19:00",
-      sun: "Domingo: 10:00–17:00",
+      weekdays: "Lunes-Sábado",
+      sunday: "Domingo",
       rights: "Todos los derechos reservados.",
     },
   },
@@ -191,8 +191,8 @@ export const translations = {
     footer: {
       address: "Address",
       hours: "Hours",
-      mon: "Monday-Saturday: 09:00–19:00",
-      sun: "Sunday: 10:00–17:00",
+      weekdays: "Monday-Saturday",
+      sunday: "Sunday",
       rights: "All rights reserved.",
     },
   },
