@@ -356,8 +356,71 @@ export function loadCatalogue() {
     });
   }
 
-  return cataloguePromise;
+  return cataloguePromise!;
 }
+
+/** Professionals allowed for a service slug (from staff_services). */
+export async function staffForService(
+  serviceSlug: string,
+): Promise<CatalogueStaff[]> {
+  const catalogue = await loadCatalogue();
+  return catalogue.staffByService[serviceSlug] || [];
+}
+
+// ---------- Consultation requests (AI agent, no booking created) ----------
+
+export type ConsultationInput = {
+  name: string;
+  phone: string;
+  email?: string | null;
+  serviceSlug: string;
+  preferredDate: string;
+  preferredTime: string;
+  altDate?: string | null;
+  altTime?: string | null;
+  proposedPrice?: number | null;
+  wantsProQuote?: boolean;
+  hairNotes?: string | null;
+  comments?: string | null;
+};
+
+/**
+ * Creates a price/time consultation request through the existing RPC.
+ * It never creates an appointment and never agrees a price.
+ */
+export async function requestConsultation(input: ConsultationInput) {
+  const catalogue = await loadCatalogue();
+  const svc = catalogue.services.find((s) => s.slug === input.serviceSlug);
+
+  if (!svc) throw new Error("SERVICE_NOT_AVAILABLE");
+
+  const wantsProQuote =
+    input.wantsProQuote === undefined ? true : input.wantsProQuote;
+
+  const { data, error } = await supabase.rpc("request_consultation", {
+    _customer_name: input.name,
+    _phone: input.phone,
+    _service_id: svc.id,
+    _preferred_date: input.preferredDate,
+    _preferred_time: input.preferredTime,
+    _alt_date: input.altDate || null,
+    _alt_time: input.altTime || null,
+    _proposed_price: wantsProQuote ? null : (input.proposedPrice ?? null),
+    _wants_pro_quote: wantsProQuote,
+    _email: input.email || null,
+    _hair_notes: input.hairNotes || null,
+    _comments: input.comments || null,
+  });
+
+  if (error) {
+    console.error("[supabase] request_consultation failed", error);
+    throw error;
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+  return { id: row?.id as string | undefined, status: row?.status || "pending" };
+}
+
 
 // ---------- Bookings ----------
 
