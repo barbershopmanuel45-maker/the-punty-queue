@@ -689,6 +689,10 @@ export default function PuntyAssistant({
         const saved = await createBooking(booking);
         const finalProfessional = saved.barber || d.barber;
 
+        // Confirmation + business notice (server-side, idempotent).
+        await notifyBookingConfirmation(saved.id, lang);
+
+
         setStep({ name: "idle" });
 
         push({
