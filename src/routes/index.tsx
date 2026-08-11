@@ -30,8 +30,6 @@ import {
   translations,
   services,
   styleShowcase,
-  barberProfessionals,
-  hairProfessionals,
   type Lang,
 } from "@/lib/i18n";
 
@@ -1148,7 +1146,9 @@ const isActiveBooking = (status?: string) => {
               onChange={(e) => update("barber", e.target.value)}
               className={inputCls}
             >
-              <option value="any">{t.booking.any}</option>
+              {currentProfessionals.length > 1 && (
+                <option value="any">{t.booking.any}</option>
+              )}
               {currentProfessionals.map((p) => (
                 <option key={p} value={p}>
                   {p}
