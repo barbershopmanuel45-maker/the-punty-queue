@@ -174,7 +174,7 @@ function consultationRows(c: ConsultationRow, lang: Lang) {
       ? "—"
       : `${b.currency}${Number(c.proposed_price).toFixed(2)}`;
 
-  const rows = [
+  const rows: { label: string; value: string }[] = [
     { label: t.service, value: c.service_name || "—" },
     {
       label: t.preferred,
