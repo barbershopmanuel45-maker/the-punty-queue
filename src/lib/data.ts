@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { businessConfig, storageKey } from "./business";
 import { services } from "./i18n";
 
 export type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled";
