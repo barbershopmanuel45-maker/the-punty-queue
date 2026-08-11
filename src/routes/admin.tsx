@@ -244,7 +244,7 @@ function AdminPage() {
       await loadAppointments();
     } catch (e: any) {
       console.error("[admin] saveEdit failed", e);
-      alert("Error guardando: " + (e?.message || "unknown"));
+      reportSaveError(e);
     } finally {
       setSaving(false);
     }
@@ -259,7 +259,7 @@ function AdminPage() {
       .eq("id", item.id);
     if (error) {
       console.error("[admin] changeStatus failed", error);
-      alert("Error: " + error.message);
+      reportSaveError(error);
       return;
     }
     await loadAppointments();
