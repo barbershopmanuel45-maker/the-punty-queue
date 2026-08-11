@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ApiPublicEmailBookingConfirmationRouteImport } from './routes/api/public/email/booking-confirmation'
+import { Route as ApiPublicEmailConsultationRouteImport } from './routes/api/public/email/consultation'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -35,18 +36,26 @@ const ApiPublicEmailBookingConfirmationRoute =
     path: '/api/public/email/booking-confirmation',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicEmailConsultationRoute =
+  ApiPublicEmailConsultationRouteImport.update({
+    id: '/api/public/email/consultation',
+    path: '/api/public/email/consultation',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/login': typeof LoginRoute
   '/api/public/email/booking-confirmation': typeof ApiPublicEmailBookingConfirmationRoute
+  '/api/public/email/consultation': typeof ApiPublicEmailConsultationRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/login': typeof LoginRoute
   '/api/public/email/booking-confirmation': typeof ApiPublicEmailBookingConfirmationRoute
+  '/api/public/email/consultation': typeof ApiPublicEmailConsultationRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -54,6 +63,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/login': typeof LoginRoute
   '/api/public/email/booking-confirmation': typeof ApiPublicEmailBookingConfirmationRoute
+  '/api/public/email/consultation': typeof ApiPublicEmailConsultationRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -62,14 +72,21 @@ export interface FileRouteTypes {
     | '/admin'
     | '/login'
     | '/api/public/email/booking-confirmation'
+    | '/api/public/email/consultation'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/login' | '/api/public/email/booking-confirmation'
+  to:
+    | '/'
+    | '/admin'
+    | '/login'
+    | '/api/public/email/booking-confirmation'
+    | '/api/public/email/consultation'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/login'
     | '/api/public/email/booking-confirmation'
+    | '/api/public/email/consultation'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +94,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   LoginRoute: typeof LoginRoute
   ApiPublicEmailBookingConfirmationRoute: typeof ApiPublicEmailBookingConfirmationRoute
+  ApiPublicEmailConsultationRoute: typeof ApiPublicEmailConsultationRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -109,6 +127,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicEmailBookingConfirmationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/email/consultation': {
+      id: '/api/public/email/consultation'
+      path: '/api/public/email/consultation'
+      fullPath: '/api/public/email/consultation'
+      preLoaderRoute: typeof ApiPublicEmailConsultationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -118,6 +143,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ApiPublicEmailBookingConfirmationRoute:
     ApiPublicEmailBookingConfirmationRoute,
+  ApiPublicEmailConsultationRoute: ApiPublicEmailConsultationRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
