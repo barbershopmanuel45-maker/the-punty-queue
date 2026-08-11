@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 
 import { supabase } from "../lib/supabase";
+import { businessConfig, formatPrice } from "../lib/business";
+import { services as catalogueServices, professionals } from "../lib/i18n";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
@@ -54,21 +56,13 @@ type ProfileRow = {
   email?: string;
 };
 
-const SERVICES = [
-  { name: "Corte al ras / Buzz cut", price: 14, duration: 20 },
-  { name: "Niños / Kids", price: 16, duration: 25 },
-  { name: "Jubilados +60 / OAP", price: 10, duration: 25 },
-  { name: "Corte de pelo / Haircut", price: 20, duration: 30 },
-  { name: "Degradado / Skin fade", price: 22, duration: 35 },
-  { name: "Recorte de barba con navaja / Beard trim with razor", price: 16, duration: 25 },
-  { name: "Degradado y barba / Skin fade and beard", price: 26, duration: 45 },
-  { name: "Recorte de barba / Beard trim", price: 6, duration: 15 },
-  { name: "Depilación de cejas / Eyebrow waxing", price: 5, duration: 15 },
-  { name: "Cejas hombre / Men's eyebrows", price: 2, duration: 10 },
-  { name: "⭐ Servicio VIP completo ROYAL / ROYAL Full VIP Service", price: 36, duration: 60 },
-];
+const SERVICES = catalogueServices.map((service) => ({
+  name: `${service.name_es} / ${service.name_en}`,
+  price: service.price,
+  duration: service.duration,
+}));
 
-const STAFF = ["Junior"];
+const STAFF = professionals;
 
 function StatCard({
   label,
@@ -626,7 +620,10 @@ function AdminPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `reservas-juniorfadefactory-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `reservas-${businessConfig.businessName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")}-${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -785,7 +782,7 @@ function AdminPage() {
               Panel admin / Admin panel
             </h1>
             <p className="text-sm text-muted-foreground">
-              JuniorFADEfactory · Barber Shop
+              {businessConfig.businessName} · {businessConfig.tagline}
             </p>
 
             {profile && (
@@ -928,7 +925,7 @@ function AdminPage() {
                   Duración: {service.duration} minutos
                 </p>
                 <p className="mt-2 text-xl font-bold text-brand-blue">
-                  £{service.price}
+                  {formatPrice(service.price)}
                 </p>
               </div>
             ))}
@@ -945,7 +942,7 @@ function AdminPage() {
               <div key={person} className="rounded-xl border bg-white p-4">
                 <h3 className="font-bold">{person}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Barbero / Barber
+                  Profesional / Professional
                 </p>
               </div>
             ))}
